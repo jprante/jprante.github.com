@@ -80,7 +80,7 @@ JB :
   comments :
     provider : disqus
     disqus :
-      short_name : jpranteblog
+      short_name : chaoscodingscomments
    
   # Settings for analytics helper
   # Set 'provider' to the analytics provider you want to use.
