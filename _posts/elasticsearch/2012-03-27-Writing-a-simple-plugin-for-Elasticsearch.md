@@ -4,6 +4,7 @@ category: lessons
 title: "How to write a simple plugin for Elasticsearch"
 tagline: "by Jörg Prante"
 tags: [intro, elasticsearch, tutorial, howto]
+comments: true
 ---
 
 Elasticsearch is a distributed, scalable, RESTful open-source search engine implementation based on Lucene. One of the most attractive features of Elasticsearch is the extensiblity by writing plugins. 
