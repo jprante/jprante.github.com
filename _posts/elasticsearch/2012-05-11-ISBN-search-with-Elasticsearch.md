@@ -179,5 +179,8 @@ And finally
 
 - with the ``multi_field`` property, you realized that you can even keep such values and put them into a separate index to avoid queries returning false hits.
 
+You can find an executable example here: https://gist.github.com/2662060
+
 Now, happy book searching with Elasticsearch!
+
 
