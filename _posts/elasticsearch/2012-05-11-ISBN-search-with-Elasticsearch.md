@@ -29,11 +29,13 @@ Now you could resign and go back into your dark and gloomy office, hide from the
 Smart Elasticsearch configuration for ISBN objects
 --------------------------------------------------
 
-Elasticsearch JSON offers properties for your fields in the index, so that they can be structured in an object-like manner. Under such an entity, you can sum up child fields that shall belong to a common parent field. Your first decision is to put all the ISBN forms under a parent called ``identifier``. You can index many identifiers in a row by using a JSON array. 
+Elasticsearch JSON offers hierarchical organized properties for your fields in the index, so they can be seen as a structure in an object-like manner. Under such a structure, you can sum up child fields that shall belong to a common parent field. 
 
-Your second decision, the children of ``identifier`` are ``isbn``, ``ean``, and ``isbnprintable``. There can be even more child entities in the future. By doing this, you can read the Elasticsearch JSON source that is sent back as a response to your search and extract the information about which forms of ISBN are connected to each other. Yes, you will need to do that sooner or later, because of a very simple reason: some books might have more than one ISBN.
+Your first decision is to put all the ISBN forms under a parent called ``identifier``. Now, you can index many identifiers in a row, just by using a JSON array. 
 
-OK, let's restrict ourselves to just one ISBN for simplicity. We assume an ISBN with three different forms. For example, let's take ISBN 1-932394-28-1. This form is printed on the book you just have in your hands. From this ISBN form, you derive the form 1932394281 (some call it a normalized form, but ISBNs are not really normalized like this) and, because you are a professional, the form 9781932394283, by recalculating the checksum for ISBN-13. The book was published back in 2005, so the publisher did not know about EAN (or ISBN-13), but you just learned you were advised to use this additional form in current applications, too.
+Your second decision is adding children to the ``identifier`` field, named ``isbn``, ``ean``, and ``isbnprintable``. There can be even more children in the future. Later, you can read the Elasticsearch JSON source that is sent back as a response to your search and extract the information about which forms of ISBN are connected to each other. Yes, you will need to do that analysis sooner or later, because of a very simple reason: some books might have more than one ISBN.
+
+Let us restrict ourselves to just one ISBN for simplicity. We assume an ISBN with three different forms. For example, let's take ISBN 1-932394-28-1. This form is printed on the book you just have in your hands. From this ISBN form, you derive the form 1932394281 (some call it a normalized form, but ISBNs are not really normalized like this) and, because you are a professional, the form 9781932394283, by recalculating the checksum for ISBN-13. The book was published back in 2005, so the publisher did not know about EAN (or ISBN-13), but you remember you were obliged to use this additional form in current applications, too.
 
 So you have designed your ISBN JSON structure for the Elasticsearch document. Let's see:
 
@@ -50,7 +52,7 @@ Redirection with ``index_name``
 
 Elasticsearch has two more smart features in the mappings for an index. One is called *index_name* and the other one is *multi_field*. By combining these two features we are able to accomplish our mission.
 
-With *index_name*, we redirect all ``ean`` values to the same index as ``isbn``. But, by setting ``multi_field``, we can still keep the EAN in a separate index that we call ``eanonly``. Finally, we add a mapping for ``isbnprintable`` for the third form of representation.
+With *index_name*, ``ean`` values can be redirected to the same index as ``isbn``. But, by setting ``multi_field``, the EAN is still kept in a separate index that we call ``eanonly``. Finally, we add a mapping for ``isbnprintable`` for the third form of representation.
 
 Just have a look at the ISBN demo mapping:
 
@@ -140,7 +142,7 @@ Now, let's satisfy our next users who prefer entering ISBNs into a special ISBN 
 
 Because the ``ean`` field is redirected to the ``isbn`` field, this works well.
 
-And finally, let's convince our barcode scan devices that they can rely on the existence of EANs in our book inventory.
+And finally, let's ensure that our barcode scan devices get only hits on EANs in our book inventory.
 
 	{
 	    "query" : {
@@ -160,6 +162,8 @@ This will not return a hit, as expected:
 	    }
 	}
 
+We left an example with ``isbnprintable`` search as an exercise.
+
 Summary
 =======
 
@@ -169,11 +173,11 @@ With Elasticsearch, challenges like ISBN search, where multiple representations 
 
 Then you found out that 
 
-- with a suitable Elasticsearch mapping, you can redirect field values to other indexes in a way they get appended to each other
+- with a suitable Elasticsearch mapping, you can redirect field values to other indexes so they get appended to each other
 
 And finally
 
-- with the ``multi_field`` property, you realized that you can even keep such values and put them into a separate index to avoid queries with false hits.
+- with the ``multi_field`` property, you realized that you can even keep such values and put them into a separate index to avoid queries returning false hits.
 
 Now, happy book searching with Elasticsearch!
 
