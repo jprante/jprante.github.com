@@ -11,7 +11,7 @@ The challenge: ISBN search
 ==========================
 
 As most of you know, International Standard Book Numbers (ISBN) come in two representations. 
-First, there is a legacy form, ISBNs in short form, ony ten characters in length.
+First, there is a legacy form, a short form with ten characters in length.
 Those ISBNs appeared exclusively before 2007 and are still very common to most of us.
 The fact is that ISBNs were expanded to thirteen characters, since the possible numbers
 given by the ISBN specification tended to run out of space. As a matter of fact, each old-style ISBN is now convertible to the new form, and all book merchands, the printing industries, and libraries were advised to only use the new ISBN form. The only ones who can not be advised are the public, that is you and me, who like to search for whatever ISBN comes into the mind.
