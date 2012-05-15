@@ -1,5 +1,11 @@
-Elasticsearch multilingual index analysis setup for library catalog search
-==========================================================================
+---
+layout: post
+category: lessons
+title: "Elasticsearch multilingual index analysis setup for library catalog search"
+tagline: "by Jörg Prante"
+tags: [intro, elasticsearch, tutorial, howto]
+comments: true
+---
 
 ![TowerOfBabel](/assets/images/Brueghel-tower-of-babel.jpg)
 
