@@ -11,12 +11,12 @@ comments: true
 
 When we recently explored ISBN search, we got some appetite for books, and now we want more, advanced book search. Let's turn to a library catalog. How do libraries, book stores, publishers and vendors offer a convenient, friendly search for book titles? ISBN is obviously not enough. Favorites for search are title keywords.
 
-In this lesson, we focus on the most important search category, the *known item search*. Known item search is a very old concept \[1\], it's as old as information retrieval as an academic discipline. It is evident that most people are needing to search for known items in a catalog succesfully. But how can we implement such a book title search with Elasticsearch?
+In this lesson, we focus on the most important search category, the *known item search*. Known item search is a very old concept \[1\], it's as old as information retrieval as an academic discipline. It is evident that most people are in need for successful known item search in a catalog. But how can we implement such a title search with Elasticsearch?
 
 What the users are longing for
 -----------------------------
 
-At first, we should summarize the characteristics and current expectations of a known-item search from a user's point of view.
+At first, we should remind the characteristics and current expectations of a known-item search from a user's point of view.
 
 - very fast response
 
@@ -28,12 +28,14 @@ At first, we should summarize the characteristics and current expectations of a 
 
 - it shall not be restricted to a localization environment, for example a certain language
 
+We will focus on the latter point in this lesson.
+
 Nature of title word forms
 --------------------------
 
-The nature of title word forms in a library catalog is one of the most challenging that can be imagined. Not only the language of domestic books, which are in majority, but languages from all over the world may appear in the title field, not mentioning artificial word forms. Moreover, in an online environment, different users from all over the world needs to be served appropriately to find the books in their own language. Ths challenge is often called multilingual search.
+The nature of title word forms in a library catalog is one of the most challenging that can be imagined. Not only the language of domestic books, which are in majority, but languages from all over the world may appear in the title field, not mentioning artificial and ancient word forms. Moreover, in an online environment, different users from all over the world needs to be served appropriately to find the books in their own language. Ths challenge is often called multilingual search.
 
-Yale university libaray, which is undoubtedly one of the most experienced library using original languages in cataloging, has examined this topic [in depth](https://collaborate.library.yale.edu/yufind/public/FinalReportPublic.pdf) and came to the conclusion
+Yale university library, which is undoubtedly one of the most experienced library using original languages in cataloging, has examined this topic [in depth](https://collaborate.library.yale.edu/yufind/public/FinalReportPublic.pdf) and concluded
 
 > *The current state of development in Unicode, Lucene/Solr and Solrmarc has advanced to a level that makes providing the high-priority original script support features entirely feasible  for a relatively modest cost.*
 
@@ -43,7 +45,7 @@ Now, let's tell our plan with Elasticsearch:
 
 - because of the wealth of international languages, we add Unicode-based character folding with the help of the International Components for Unicode (ICU) Elasticsearch plugin
 
-- we fix certain deficiencies of the Snowball stemmer with extra indexing of the unchanged word form
+- we fix certain deficiencies of the Snowball stemmer by additional indexing of the unchanged word form
 
 Here is the Index Analysis setting we choose:
 
@@ -391,7 +393,7 @@ By setting up Elasticsearch with a customized index analysis setting, we learned
 
 - that it is possible to filter tokens not only by word stemming but also by unicode folding provided by the Elasticsearch ICU plugin \[4\]
 
-- that words can get overstemmed and need fixing by combining analyzers by the help of the Elasticsearch Combo Analysis plugin \[5\]
+- that words can get overstemmed and need fixing by combining analyzers with the help of the Elasticsearch Combo Analysis plugin \[5\]
 
 - that we can check the indexed word forms with the help of the Elasticsearch analysis API.
 
