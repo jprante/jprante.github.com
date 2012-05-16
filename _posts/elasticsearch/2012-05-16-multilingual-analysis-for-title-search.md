@@ -403,10 +403,10 @@ Author name search is also an interesting topic. In one of the next blog entries
 
 \[1\]  Tagliacozzo, R., Kochen, M. (1970/12)."Information-seeking behavior of catalog users." Information Storage and Retrieval 6(5): 363-381.
 
-\[2\] http://snowball.tartarus.org/algorithms/german2/stemmer.html
+\[2\] <http://snowball.tartarus.org/algorithms/german2/stemmer.html>
 
-\[3\] http://en.wikipedia.org/wiki/CJK_Unified_Ideographs
+\[3\] <http://en.wikipedia.org/wiki/CJK_Unified_Ideographs>
 
-\[4\] https://github.com/elasticsearch/elasticsearch-analysis-icu
+\[4\] <https://github.com/elasticsearch/elasticsearch-analysis-icu>
 
-\[5\] https://github.com/jprante/elasticsearch-analysis-combo
+\[5\] <https://github.com/jprante/elasticsearch-analysis-combo>
