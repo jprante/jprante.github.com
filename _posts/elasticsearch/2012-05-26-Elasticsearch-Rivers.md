@@ -18,7 +18,7 @@ MongoDB River (Richard Louapre) <https://github.com/richardwilly98/elasticsearch
 
 St9 River (Sunny Gleason) <https://github.com/sunnygleason/elasticsearch-river-st9>
 
-OAI River (Jörg Prante) <https://github.com/adamlofts/elasticsearch-river-oai>
+OAI River (Jörg Prante) <https://github.com/jprante/elasticsearch-river-oai>
 
 Sofa River (adamlofts) <https://github.com/adamlofts/elasticsearch-river-sofa>
 
