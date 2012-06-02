@@ -1,9 +1,9 @@
 ---
 layout: post
-category: lessons
+category: applications
 title: "Elasticsearch for bibliographic authorities"
 tagline: "by Jörg Prante"
-tags: [intro, elasticsearch, tutorial, howto]
+tags: [library technology, elasticsearch, authority files, advanced search, search infrastructure]
 comments: true
 ---
 
