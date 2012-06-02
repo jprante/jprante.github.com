@@ -7,7 +7,7 @@ tags: [intro, elasticsearch, tutorial, howto]
 comments: true
 ---
 
-![TowerOfBabel](/assets/images/Gottfried_Wilhelm_von_Leibniz.jpg)
+![Leibnix](/assets/images/Gottfried_Wilhelm_von_Leibniz.jpg)
 
 *Leibniz, as a librarian, used subject headings in Bibliotheca boineburgica to establish 'locus communis'*
 
