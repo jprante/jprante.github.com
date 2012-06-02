@@ -1,30 +1,40 @@
-Elasticsearch for bibliographic authorities
-===========================================
+---
+layout: post
+category: lessons
+title: "Elasticsearch for bibliographic authorities"
+tagline: "by Jörg Prante"
+tags: [intro, elasticsearch, tutorial, howto]
+comments: true
+---
 
-Libraries are challenged with many search tasks since decades. When producing new catalog entries, it has been observed very soon since the mid of the 20th century that it is useful to save work by obtaining already existing entries in the catalog. But how do library professionals find existing entries efficiently?
+![TowerOfBabel](/assets/images/Gottfried_Wilhelm_von_Leibniz.jpg)
+
+*Leibniz, as a librarian, used subject headings in Bibliotheca boineburgica to establish 'locus communis'*
+
+Libraries are challenged with many search tasks since decades. When producing new catalog entries, it has been observed very soon since the mid of the 20th century that it is useful to save work by automatically obtaining already existing entries from the catalog. But how do library professionals find existing catalog entries efficiently?
 
 There are several inventions of library professionals in this field:
 
-- Metadata. Yes, librarians invented metadata. Metadata allows for excerpting important parts from all the information of a media resource like a book. Librarians invented even compact title and author entities a few centuries before, revolutionizing the publishing industry.
+- Metadata. Yes, librarians invented 'intellectual' metadata. Metadata allows for excerpting important parts from all the information of a media resource like a book. Librarians invented not only subject headings but even compact title and author entities a few centuries before, revolutionizing the publishing industry.
 
 - Controlled metadata. Catalog rules were invented to enforce librarians using always the same verbal forms for entity names in catalogs, the *authorities*. The form selected for main entries in the catalog is also called *heading*. One of the most successful controlled metadata is history are authority files or authority lists \[1\], such as the Library of Congress Subject Headings (LCSH). In Germany, the first automated authority file was the Körperschaftsdatei of the Zeitschriftendatenbank, invented in the early 1970s.
 
-- The exchange of controlled metadata. Librarians also invented methods to fusion metadata in large databases for harmonization of authority files. The most impressive one is VIAF, the Virtual International Authority File. Many nations worldwide can align their entity vocabulary in authority files with the help of VIAF.
+- The exchange of controlled metadata. Librarians also invented methods to fusion metadata in large databases for harmonization of authority files. A recent impressive one is VIAF, the Virtual International Authority File. Many nations worldwide can align their entity vocabulary in authority files with the help of VIAF.
 
-- The integration of controlled metadata into the Semantic Web. By using Linked Data techniques as postulated by Tim Berners-Lee, librarians joined the efforts of the W3C to establish the web as a huge global online information database of facts and statements under inclusion of the information in library catalogs.
+- The integration of controlled metadata into the Semantic Web. By using simple *Linked Data* techniques as postulated by Tim Berners-Lee, librarians joined the efforts of the W3C to establish the web as a huge global online information database of facts and statements under inclusion of library catalogs.
 
-In Germany, the Deutsche Nationalbibliothek (DNB) just harmonized defragmented german authority files into a single authory file called *Gemeinsame Normdatei* (GND). DNB adjusted the catalog rules and assigned URIs to authority entities. This has been recognized as a remarkable step in authority metadata management in german libraries, which has a long history \[3\].
+In Germany, the Deutsche Nationalbibliothek (DNB) just harmonized defragmented german authority files into a single authory file called *Gemeinsame Normdatei* (GND). DNB adjusted the catalog rules and assigned URIs to authority entities. This has been recognized as a remarkable step in authority metadata management in german libraries, which has a long history \[2\], \[3\].
 
 Efficient authority search
 --------------------------
 
-But librarians did not care too much for efficient authority search as they go along with their inventions. Up to now, german libraries offer only antique and insufficent search interfaces for authority files. Such search interfaces are always affected by the disadvantages of MARC/MAB.
+But librarians did not care too much for efficient authority search as they go along with their inventions. Up to now, many german libraries offer only rudimentary OPACs with insufficent search capabilities for authority files. Such search interfaces are always affected of impedance mismatches due to traditional data formats for cataloging like MARC or MAB.
 
-Lateley, Deutsche Nationalbibliothek prepared GND in an RDF Turtle dump \[4\], which fits nicely into W3C semantic web and is perfect for indexing into modern search engines. The RDF turtle dump is licensed in the public domain (CC0), so everyone can use the data and enrich the data to the fullest extent without having to ask for permission.
+Lateley, Deutsche Nationalbibliothek prepared GND in an RDF Turtle dump \[4\], which fits nicely into W3C semantic web and is perfect for indexing into modern search engines. The RDF turtle dump is licensed into the public domain (CC0), so everyone can use the data and enrich the data to the fullest extent without having to ask for permission.
 
 Updates are offered by DNB via an Open Archives Initiative (OAI) interface on a daily basis. This is a "pull" mechanism with limited scalability.
 
-Since I'm a computer science professional, it wasn't too hard to implement an indexer that indexes RDF turtle data in Elasticsearch. The rough components are
+It wasn't too hard to implement an indexer that indexes RDF turtle data in Elasticsearch. The rough components are
 
 - a turtle parser
 
@@ -34,7 +44,7 @@ Since I'm a computer science professional, it wasn't too hard to implement an in
 
 - a bulk indexer for Elasticsearch
 
-- an OAI river for Elasticsearch
+- an OAI river for Elasticsearch for receivng updates
 
 Here is an example command line how to index the full data set into Elasticsearch. The tool is called 
 ``org.xbib.tools.indexer.ElasticsearchGNDIndexer``, the source GND file is ``GND.ttl.gz``, and the target is an Elasticsearch cluster reachable by the network interface where ``hostname`` is bound to, with the index ``gnd`` and type ``gnd``
@@ -135,7 +145,7 @@ As you noticed by this quick search, GND may contain duplicates from the predece
 
 It is not a big challenge to transform Elasticsearch JSON search results back to RDF, to N-triples, Turtle, or RDF/XML format, for exporting documents.
 
-As Elasticsearch is only used as a coarse-grained triple store with documents containing sub-graphs of common RDF subjects, it is rather tough to implement a SPARQL interface covering all the documents. So, for a full linked data approach, you have to use a SPARQL-Triplestore like 4store.
+As Elasticsearch is only used as a coarse-grained triple store with documents containing sub-graphs of RDF triples with common subject URIs, it is rather tough to implement a SPARQL interface covering all the documents. So, for a full semantic web approach, you have to use a SPARQLified triple store like 4store. The disadvantage of tripe store is the slow searching and the response time latency.
 
 A river for OAI
 ---------------
@@ -165,23 +175,21 @@ Summary
 
 With powerful search capabilities, Elasticsearch can be turned into an important back-bone for the future libary catalog search infrastructure for the following reasons:
 
-- Elasticsearch can maintain authority files quick and easy
+- 9,5 million GND entries are indexed in minutes
 
 - search results return in milliseconds
 
-- Elasticsearch scales well with growing search and index requirements
+- growing search and index requirements are not a big challenge
 
-- Elasticsearch offers a wealth of additional search features such as facets (drill-down) which are known to be useful for authority-controlled library catalogs
+- a wealth of additional search features such as facet search (drill-down) is availiable which is known to be useful for authority-controlled library catalogs
 
-- by keeping the RDF data structure intact, Elasticsearch offers scalabe RDF literal search
+- by keeping the RDF data structure intact, Elasticsearch offers scalable RDF literal search
 
-- 9,5 million GND entries are indexed in minutes into documents organized of RDF triples with common subjects
+- using the schema-free and multi-tenancy property of Elasticsearch, it is a platform for maintaining several catalogs in multiple indexes and for aggregating related metadata
 
-- using the schema-free and multi-tenancy property of Elasticsearch, it is a platform for maintaining several catalogs in multiple indexes and for aggregating related authority-based metadata. 
+Aggregating is not limited to authority files. Elasticsearch could also aggregate holdings from many libraries. It is even possible to attach full SRU and OAI capabilities to Elasticsearch, turning Elasticsearch into a complete front-end for traditional library systems. This will be shown in one of the subsequent postings here.
 
-Aggregating is not limited to authority files. Elasticsearch could also aggregate holdings from many libraries. It is even possible to attach SRU and OAI capabilities to Elasticsearch, turning Elasticsearch into a complete front-end for library systems. This will be shown in one of the subsequent postings here.
-
-This is just tscraping the surface, but a search engine like Elasticsearch can help pushing libraries to a new level of global semantic web data harmonization, for example, union catalogs on steroids, or a inter-library loan index. And the improved results of such a globalization will serve all of you, the users of public and academic libraires, all around the world.
+This posting is just scraping the surface, but search engines like Elasticsearch can help pushing libraries to a new level of global data harmonization, for example, union catalogs on steroids, or an inter-library loan index. And the improved results of such a globalization will be useful all of you, as users of public and academic libraries, all around the world.
 
 References
 ----------
@@ -194,3 +202,5 @@ Dekker, 1969, Vol. 2, p. 132−138.
 \[3\] http://repositorium.uni-osnabrueck.de/bitstream/urn:nbn:de:gbv:700-201001304634/1/ELibD27_normdateien.pdf
 
 \[4\] http://www.dnb.de/DE/Service/DigitaleDienste/LinkedData/linkeddata_node.html
+
+\[5\] https://github.com/jprante/elasticsearch-river-oai/
