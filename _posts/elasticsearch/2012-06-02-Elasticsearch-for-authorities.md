@@ -96,6 +96,8 @@ Then let's start indexing.
 
 The process took roughly 80 minutes on a MacBook Pro for ~9,5 millions of different RDF subjects. The result is a 7.5 GB index in 5 shards (five distributed Lucene indices).
 
+![elasticsearch-gnd-sample-index](/assets/images/elasticsearch-gnd-sample-index.png)
+
 Here is an example of a quick search. The result contains two entries of the GND, one from the former Schlagwortdatei and the Gemeinsame Körperschaftsdatei.
 
 	curl -XGET 'localhost:9200/gnd/gnd/_search?q=hbz%20nordrhein'
@@ -197,10 +199,10 @@ References
 \[1\] Allen Kent, Harold Lancour: Encyclopedia of Library and Information Science. New York,
 Dekker, 1969, Vol. 2, p. 132−138.
 
-\[2\] http://bibliothekarisch.de/blog/2012/05/02/gnd-loest-pnd-gkd-und-swd-ab/
+\[2\] <http://bibliothekarisch.de/blog/2012/05/02/gnd-loest-pnd-gkd-und-swd-ab/>
 
-\[3\] http://repositorium.uni-osnabrueck.de/bitstream/urn:nbn:de:gbv:700-201001304634/1/ELibD27_normdateien.pdf
+\[3\] <http://repositorium.uni-osnabrueck.de/bitstream/urn:nbn:de:gbv:700-201001304634/1/ELibD27_normdateien.pdf>
 
-\[4\] http://www.dnb.de/DE/Service/DigitaleDienste/LinkedData/linkeddata_node.html
+\[4\] <http://www.dnb.de/DE/Service/DigitaleDienste/LinkedData/linkeddata_node.html>
 
-\[5\] https://github.com/jprante/elasticsearch-river-oai/
+\[5\] <https://github.com/jprante/elasticsearch-river-oai/>
