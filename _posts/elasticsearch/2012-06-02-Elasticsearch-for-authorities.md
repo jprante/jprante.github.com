@@ -155,7 +155,7 @@ As you noticed by this quick search, GND may contain duplicates from the predece
 
 It is not a big challenge to transform Elasticsearch JSON search results back to RDF, to N-triples, Turtle, or RDF/XML format, for exporting documents.
 
-As Elasticsearch is only used as a coarse-grained triple store with documents containing sub-graphs of RDF triples with common subject URIs, it is rather tough to implement a SPARQL interface covering all the documents. So, for a full semantic web approach, you have to use a SPARQLified triple store like 4store. The disadvantage of tripe store is the slow searching and the response time latency.
+As Elasticsearch is only used as a coarse-grained triple store with documents containing sub-graphs of RDF triples with common subject URIs, it is rather tough to implement a SPARQL interface covering all the documents. So, for a full semantic web approach, you have to use a SPARQLified triple store like 4store. But native triple stores do not offer so many useful features like Elasticsearch and are focused on special tasks.
 
 A river for OAI
 ---------------
