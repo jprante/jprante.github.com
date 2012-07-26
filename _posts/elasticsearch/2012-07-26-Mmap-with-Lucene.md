@@ -11,17 +11,17 @@ comments: true
 
 *[Licensed under Creative Commons](http://creativecommons.org/licenses/by/2.0/)*
 
-In a great article about using memory-mapped files in Lucene, Uwe Schindler discussed [why switching Lucene directories to MMapDirectory](http://blog.thetaphi.de/2012/07/use-lucenes-mmapdirectory-on-64bit.html) is most preferable today.
+In a great article about using memory-mapped files in Lucene, Uwe Schindler discussed [why switching Lucene directories to MMapDirectory](http://blog.thetaphi.de/2012/07/use-lucenes-mmapdirectory-on-64bit.html) is a good thing today.
 
-Some questions have arisen in the article and some thoughts came up in my mind, so I decided to write a little more about virtual memory.
+Some questions have arisen in the article and some thoughts came up in my mind, so I decided to write a little more aspects here about virtual memory.
 
 One question that came up to me was: why are memory-mapped files a better choice over paging - since both of them are managed by the OS, and both try to optimize memory resource usage between memory and external disks?
+
+Will ``RAMDirectory`` be a good choice for keeping Lucene index in memory?
 
 Or: is every 64bit system suitable for memory-mapped files?
 
 Another one: do Linux/Solaris offer adequate solutions to the challenges of switching to ``mmap``'ed Lucene directories?
-
-And finally: are there already answers to ``mmap``-related questions?
 
 Before stepping into trying to find answers, let me quickly resume what the paging feature is as we know it from UNIX-like operating systems.
 
@@ -138,7 +138,6 @@ As Linux kernel hacker Robert Love pointed out:
 
 So finally, we have found out why we should prefer ``mlockall`` and not disabling the entire system's paging.
 
-
 Configuring ``mmap`` and ``mlockall`` in Elasticsearch
 -------------------------------------------------------
 
@@ -160,6 +159,13 @@ Elasticsearch allows an ``mlockall()`` call at node booting time with the parame
 in elasticsearch.yml. To complete the configuration the JVM memory size should also be configured. This is done by editing ``ES_HEAP_SIZE`` in the start script.
 
 ``bootstrap.mlockall`` might cause the JVM or shell session to exit if allocation of the memory fail with ``unknown mlockall error 0``. Possible reason is that not enough lock memory resources are available on the machine. This can be checked by ``ulimit -l``. The value should be set to ``unlimited``.
+
+Lucene's ``RAMDirectory`` and Elasticsearch's ``ByteBufferDirectory``
+-------------------------------------------------------
+
+Lucene has an implementation for storing the index in the JVM heap. Right now, the ``RAMDirectory`` is designed only for test purposes and not for production. The reason is ``RAMDirectory`` objects are allocated by byte chunks, and the buffer size is relative small (8k). So if your index is a few gigabytes, you have a high number of heap objects and you will encounter garbage collection issues. ``RAMDirectory`` is not a good choice for speeding up index reads and writes under production workloads.
+
+A DirectBufferByte-based clone of Lucene's MMapDirectory that can store the index outside the heap is currently under development, as suggested by Elasticsearch founder Shay Banon. Elasticsearch already uses [such an implementation](https://github.com/elasticsearch/elasticsearch/tree/master/src/main/java/org/apache/lucene/store/bytebuffer) with index store type  of ``memory``.
 
 A final word
 ------------
@@ -195,3 +201,4 @@ University of Alberta, "Understanding Memory" - <http://www.ualberta.ca/CNS/RESE
 
 "Elasticsearch guide: Installation" - <http://www.elasticsearch.org/guide/reference/setup/installation.html>
 
+"ByteBuffer Directory - allowing to store the index outside the heap" - <https://issues.apache.org/jira/browse/LUCENE-2292>
