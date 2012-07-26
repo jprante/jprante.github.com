@@ -17,7 +17,7 @@ Some questions have arisen in the article and some thoughts came up in my mind, 
 
 One question that came up to me was: why are memory-mapped files a better choice over paging - since both of them are managed by the OS, and both try to optimize memory resource usage between memory and external disks?
 
-Or: is every 64-bit system suitable for memory-mapped files?
+Or: is every 64bit system suitable for memory-mapped files?
 
 Another one: do Linux/Solaris offer adequate solutions to the challenges of switching to ``mmap``'ed Lucene directories?
 
@@ -42,7 +42,7 @@ On Linux, for example, you could put a lot of RAM into your machine to ensure th
 
 	# swapoff -a
 
-On Solaris, you should be ware that ``/tmp`` is located in the swap area and writing to ``/tmp`` may conflict with the idea of completely disabling paging. Additional issues may arise when using ZFS. ZFS uses an ARC (adaptive replacement cache) but not the normal page cache. The ARC lives in the kernel space. By default, ARC is allocating all available memory for aggressive caching, where swap space is managed by ZFS devices. The result is extra memory pressure when applications with large heap requirements are present, like Lucene. To remedy the situation, it is often recommended to reduce the ARC size so that ARC plus other memory use fits into total RAM size. Use at least Solaris 10 10/09, and for example, you can limit ARC cache usage with adding a line such 
+On Solaris, you should be aware that ``/tmp`` is located in the swap area and writing to ``/tmp`` may conflict with the idea of completely disabling paging. Additional issues may arise when using ZFS. ZFS uses an ARC (adaptive replacement cache) but not the normal page cache. The ARC lives in the kernel space. By default, ARC is allocating all available memory for aggressive caching, where swap space is managed by ZFS devices. The result is extra memory pressure when applications with large heap requirements are present, like Lucene. To remedy the situation, it is often recommended to reduce the ARC size so that ARC plus other memory use fits into total RAM size. Use at least Solaris 10 10/09, and for example, you can limit ARC cache usage with adding a line such 
 
 	set zfs:zfs_arc_max 0x780000000
 
@@ -63,7 +63,7 @@ For understanding better where the JVM puts memory-mapped files, let's examine t
 
 Most of these allocations are allocated in terms of virtual memory early, but committed only on demand. Your application's physical memory use may look small at start time, but may get higher later on.
 
-We learned that memory-mapped files allocate pages outside of the Java and C code and heap spaces, instead it allocates them directly in the system's virtual address space.
+We learned that memory-mapped files in Lucene allocate pages outside of the Java and C code heap spaces, instead it allocates them directly in the system's virtual address space.
 
 Memory-mapping
 --------------
@@ -75,7 +75,7 @@ Memory-mapped files can be shared between processes (this might be complex thoug
 Why ``mmap`` is getting more important today
 --------------------------------------------
 
-One important argument for ``mmap`` is the I/O performance. Much progress has been made in input/output file processing. In recent years, new server machines in the PC class (Intel CPU architecture) were equipped with more powerful memory management and I/O devices. 
+One important argument for ``mmap`` is the I/O performance. Much progress has been made in input/output file processing. In recent years, new server machines in the PC class (Intel CPU architecture) were equipped with more powerful memory management but also with new I/O devices. 
 
 The challenge was to cope with huge amounts of RAM (because RAM chips were getting cheaper and denser) and with overhauled virtual machine designs where the total address space is virtualized to several logical units that look like a complete hardware layer to the OS. As a result, the memory resources in hardware today can be efficiently managed better than ever. 
 
@@ -84,7 +84,7 @@ Another trend in overall system performance is that compiler tool chains and vir
 64bit hardware - it evolved over time
 --------------------------------------
 
-The largest memory address you can point to with a 32bit pointer is 4GB. But is it really enough to know that 64bit operating systems are using 64bit address pointers? The answer is, it depends. We also need to know about some engineering decisions for the hardware of our PC "industry standard" server. Some years ago, 64bit servers were restricted regarding memory subsystems, mostly because it was too expensive for the vendors. UNIX servers had their advantage in virtual memory management over PC server. But today, the situation has much improved in favor of the PC servers.
+The largest memory address you can point to with a 32bit pointer is 4GB. But is it really enough to know that 64bit operating systems are using 64bit address pointers? The answer is, it depends. Some engineering decisions for the hardware of our PC "industry standard" server a few years ago regarding memory subsystems were suboptimal, mostly because it was too expensive for the vendors to build such machines. UNIX servers kept for some time their advantage in virtual memory management over PC server. But today, the situation has much improved in favor of the PC servers.
 
 Yesterday's 64bit hardware was
 
@@ -110,18 +110,18 @@ whereas today's 64bit hardware
 
 And fortunately, beside the application code, the operating systems were improved.
 
-Nowadays, when you are able to throw in as much hardware as you can buy into your system and the OS can scale with it, you will not need bothering too much about the consequences when you enable ``mmap()``'ed files.
+So when you are able to throw in as much hardware as you can buy into your system and the OS can scale with it, you will not need bothering too much about the consequences when you enable ``mmap()``'ed files.
 
 Memory overcommit
 -----------------
 
-Memory overcommit is a kernel feature of Linux/BSD/AIX where ``malloc`` never fails. It never returns a NULL pointer. In Linux, this is usually enabled by default. Processes are able to allocate more virtual memory than the system actually has, on the hope that they won't end up using it. If processes try to use more memory than is available, the Out-of-Memory killer (OOM killer) comes in and picks some process to exit them immediateley in order to recover memory for the operating system.
+Memory overcommit is a nifty kernel feature of Linux/BSD/AIX where ``malloc`` never fails. It never returns a NULL pointer. In Linux, this is usually enabled by default. Processes are allowed to allocate more virtual memory than the system actually has, on the hope that they won't end up using it. If processes try to use more memory than is available, the Out-of-Memory killer (OOM killer) comes in and picks some process to exit it immediateley in order to recover memory for the operating system.
 
 Solaris has no memory overcommit feature.
 
-This feature is also relevant for Lucene ``mmap``'ed processes. When they request memory, it is likely they will not fail. But later on, when the process memory usage grows, the OOM killer steps in and might kill the Lucene process.
+This feature is also relevant for Lucene ``mmap``'ed processes. When they request memory, it is likely they will not fail. But later on, when the process memory is going to be used, the OOM killer might step in and kill the Lucene process.
 
-Locking Lucene process to RAM with ``mlockall``
+Locking Lucene processes to memory with ``mlockall``
 ----------------------------------------------
 
 Memory overcommit does not tell if a Lucene process completely resides in RAM for low latency. One approach to enure low latency is locking the pages of the Lucene process to RAM.
@@ -166,7 +166,7 @@ A final word
 
 I traced the 64-bit server trends now for more than ten years. The future is not hard to see. Servers will be equipped with more and faster RAM, and terabytes of main memory will become popular. For Lucene-based applications it means that RAM-only installations will become more important.
 
-Uwe Schindler's article reminded me of the huge progress of recent server technology. I appreciate all the hard engineers work designing so extraordinary systems that most annoying resource limits and performance bottlenecks almost have become part of the past.
+Uwe Schindler's article reminded me of the huge progress of recent server technology. I appreciate all the hard work of engineering such extraordinary systems that most annoying resource limits and performance bottlenecks almost have become part of the past.
 
 If you belong to those who are not blessed with the latest and greatest 64bit PC server hardware available or you are simply tied to maintain older OSs and applications, do not expect too much from ``mmap``'ed Lucene directories. With older hardware, obsolete operating system versions, or tight memory resources, ``mmap``'ed Lucene directories and ``mlockall``ed Lucene processes are not always a neat solution.
 
