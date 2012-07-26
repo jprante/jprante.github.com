@@ -172,7 +172,7 @@ Just change ``mmapfs`` to `` memory`` in the Elasticsearch configuration and enj
 A final word
 ------------
 
-I traced the 64-bit server trends now for more than ten years. The future is not hard to see. Servers will be equipped with more and faster RAM, and terabytes of main memory will become popular. For Lucene-based applications it means that RAM-only installations will become more important.
+I traced the 64-bit server trends now for more than ten years. The future is not hard to anticipate. Servers will be equipped with larger, faster, and denser RAM chips, and terabytes of main memory will become popular. For Lucene-based applications it means that RAM-only installations will become more important.
 
 Uwe Schindler's article reminded me of the huge progress of recent server technology. I appreciate all the hard work of engineering such extraordinary systems that most annoying resource limits and performance bottlenecks almost have become part of the past.
 
