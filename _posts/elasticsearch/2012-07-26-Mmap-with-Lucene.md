@@ -163,9 +163,11 @@ in elasticsearch.yml. To complete the configuration the JVM memory size should a
 Lucene's ``RAMDirectory`` and Elasticsearch's ``ByteBufferDirectory``
 -------------------------------------------------------
 
-Lucene has an implementation for storing the index in the JVM heap. Right now, the ``RAMDirectory`` is designed only for test purposes and not for production. The reason is ``RAMDirectory`` objects are allocated by byte chunks, and the buffer size is relative small (8k). So if your index is a few gigabytes, you have a high number of heap objects and you will encounter garbage collection issues. ``RAMDirectory`` is not a good choice for speeding up index reads and writes under production workloads.
+Lucene has an implementation for storing the index in the JVM heap. Right now, the ``RAMDirectory`` is designed only for test purposes and not for production. The reason is ``RAMDirectory`` objects are allocated in the heap by byte chunks, and the buffer size is relatively small (8k). So if your index is a few gigabytes, you have a high number of heap objects and you will encounter garbage collection issues. ``RAMDirectory`` is not a good choice for speeding up index reads and writes under production workloads.
 
 A DirectBufferByte-based clone of Lucene's MMapDirectory that can store the index outside the heap is currently under development, as suggested by Elasticsearch founder Shay Banon. Elasticsearch already uses [such an implementation](https://github.com/elasticsearch/elasticsearch/tree/master/src/main/java/org/apache/lucene/store/bytebuffer) with index store type  of ``memory``.
+
+Just change ``mmapfs`` to `` memory`` in the Elasticsearch configuration and enjoy your RAM-only search index, which is also distributed over as many nodes as you wish. It's simple as that.
 
 A final word
 ------------
