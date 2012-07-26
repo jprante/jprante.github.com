@@ -30,13 +30,13 @@ Paging
 
 Paging takes place on the operating system (OS) level. The OS has to manage process code, data, and several types of cache, for instance the file system cache, so they can exist side-by-side in the virtual memory address space. Because the OS knows about what is going on in the whole system, it can take care of the right priorities. Memory pages can be moved to RAM or they can be evicted to external storage. Applications in the user space can not force the OS to change paging strategies. Paged data can be adressed only by the address of the page. When memory pages are swapped, they usually can not be shared between processes.
 
-Swapping or (paging) is generally known as a performance killer because it is known to cause high I/O activity on swap devices or files on disk. But paging is not evil. It is very useful for many cases. Long lived application and large amounts of rarely demanded memory can be swapped to disk. By doing this, the OS is able to fight back against bad inefficient programming style and bad behaving processes. In such cases, paging works like a magic cache, just delivering the right memory resources at the right time to the right place.
+Swapping or (paging) is generally known as a performance killer because it can cause high I/O activity on swap devices or files on disk. But paging is not evil. It is beneficial in many cases. Long lived application and large amounts of rarely demanded memory can be swapped to disk. By doing this, the OS is able to fight back against bad inefficient programming style and bad behaving processes. In such cases, paging works like a magic cache, just delivering the right memory resources at the right time to the right place.
 
-But the page cache not a usual cache. It is a high-priority kernel task that manages paging. And it also depends on the operating system how paging works. Solaris, Linux, Windows, Mac OS X have all different paging behavior. 
+But the page cache is not a usual cache. It is a high-priority kernel task that manages paging. And it also depends on the operating system how paging works. Solaris, Linux, Windows, Mac OS X have all different paging behavior. 
 
-Why is disabling paging useful? There are two kinds of applications to limit paging: high-security (to keep secrets like encryption keys in memory) and real-time applications to improve low latency.
+Why is disabling paging useful? There are two kinds of applications for limiting paging: high-security (to keep secrets like encryption keys in memory) and real-time applications to improve low latency. Search engines like Lucene belong to the latter.
 
-Paging can be disabled by super user privileges. But when paging is disabled, the memory pressure gets higher and the OS has lower file system cache available because it must compete with all the process code and data more frequently. It depends on your OS if preventing paging is desirable, but one fact is, your kernel will spend more time in overhead routines for managing memory allocation.
+Paging can be disabled by super user privileges. But when paging is disabled, the memory pressure gets higher and the OS has lower file system cache available because it must compete with all the process code and data more frequently. It depends on your OS if preventing paging is desirable, but one fact is, the kernel will spend more time in overhead routines for managing memory allocation.
 
 On Linux, for example, you could put a lot of RAM into your machine to ensure the amount of RAM is greater than your applications will ever need and you can disable swap. If you want to disable swap, terminate all processes that use swap, and execute the command (as root):
 
@@ -115,7 +115,7 @@ So when you are able to throw in as much hardware as you can buy into your syste
 Memory overcommit
 -----------------
 
-Memory overcommit is a nifty kernel feature of Linux/BSD/AIX where ``malloc`` never fails. It never returns a NULL pointer. In Linux, this is usually enabled by default. Processes are allowed to allocate more virtual memory than the system actually has, on the hope that they won't end up using it. If processes try to use more memory than is available, the Out-of-Memory killer (OOM killer) comes in and picks some process to exit it immediateley in order to recover memory for the operating system.
+Memory overcommit is a nifty kernel feature of Linux/BSD/AIX where ``malloc`` never fails. It never returns a NULL pointer. In Linux, this is usually enabled by default. Processes are allowed to allocate more virtual memory than the system actually has, on the hope that they won't end up using it. If processes try to use more memory than is available, the Out-of-Memory killer (OOM killer) comes in and picks some process to exit it immediately in order to recover memory for the operating system.
 
 Solaris has no memory overcommit feature.
 
@@ -124,7 +124,7 @@ This feature is also relevant for Lucene ``mmap``'ed processes. When they reques
 Locking Lucene processes to memory with ``mlockall``
 ----------------------------------------------
 
-Memory overcommit does not tell if a Lucene process completely resides in RAM for low latency. One approach to enure low latency is locking the pages of the Lucene process to RAM.
+Memory overcommit does not guarantee a Lucene process can completely reside in memory for low latency. One approach to ensure it is by locking the pages of the Lucene process to memory.
 
 ``mlockall`` is a UNIX system call that causes all of the pages mapped by the address space of a process to be memory resident until unlocked or until the process exits or execs another process. 
 
