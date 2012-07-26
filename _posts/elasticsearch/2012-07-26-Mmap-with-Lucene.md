@@ -61,7 +61,7 @@ For understanding better where the JVM puts memory-mapped files, let's examine t
 - the C/malloc heap. Both the JVM itself and any native code typically uses ``malloc`` to allocate memory from this heap. NIO direct buffers are allocated via malloc.
 - any other ``mmap`` calls. Native code can allocate pages in the address space using ``mmap`` (or Java code via JNA)
 
-Most of these allocations are allocated in terms of virtual memory early, but committed only on demand. Your application's physical memory use may look small at start time, but may get higher later on.
+Most of these allocations are allocated in terms of virtual memory early, but committed only on demand. Your application's physical memory use may look low at start time, but may get higher later on.
 
 We learned that memory-mapped files in Lucene allocate pages outside of the Java and C code heap spaces, instead it allocates them directly in the system's virtual address space.
 
