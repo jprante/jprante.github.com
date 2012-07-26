@@ -17,6 +17,8 @@ Some questions have arisen in the article and some thoughts came up in my mind, 
 
 One question that came up to me was: why are memory-mapped files a better choice over paging - since both of them are managed by the OS, and both try to optimize memory resource usage between memory and external disks?
 
+Or: is every 64-bit system suitable for memory-mapped files?
+
 Another one: do Linux/Solaris offer adequate solutions to the challenges of switching to ``mmap``'ed Lucene directories?
 
 And finally: are there already answers to ``mmap``-related questions?
@@ -32,36 +34,24 @@ Swapping or (paging) is generally known as a performance killer because it is kn
 
 But the page cache not a usual cache. It is a high-priority kernel task that manages paging. And it also depends on the operating system how paging works. Solaris, Linux, Windows, Mac OS X have all different paging behavior. 
 
-Paging can be disabled by super user privileges. But when paging is disabled, the memory pressure gets higher, the OS has lower file system cache available because it must compete with all the process code and data more frequently. It depends on your OS what will happen when you disable paging, but one fact is, your kernel will spend more time in overhead routines for managing memory allocation.
+Why is disabling paging useful? There are two kinds of applications to limit paging: high-security (to keep secrets like encryption keys in memory) and real-time applications to improve low latency.
 
-Paging on Linux
-----------------
+Paging can be disabled by super user privileges. But when paging is disabled, the memory pressure gets higher and the OS has lower file system cache available because it must compete with all the process code and data more frequently. It depends on your OS if preventing paging is desirable, but one fact is, your kernel will spend more time in overhead routines for managing memory allocation.
 
 On Linux, for example, you could put a lot of RAM into your machine to ensure the amount of RAM is greater than your applications will ever need and you can disable swap. If you want to disable swap, terminate all processes that use swap, and execute the command (as root):
 
 	# swapoff -a
-	
-See also
 
-<http://docs.redhat.com/docs/en-US/Red_Hat_Enterprise_Linux/3/html/System_Administration_Guide/s1-swap-removing.html>
-
-Paging on Solaris
--------------------
-
-On Solaris, additional issues may arise when using ZFS. ZFS uses an ARC (adaptive replacement cache) but not the normal page cache. The ARC lives in the kernel space. By default, ARC is allocating all available memory for aggressive caching. Swap is managed by ZFS devices. The result is extra memory pressure when applications with large heap requirements are present, like Lucene. To remedy the situation, it is often recommended to reduce the ARC size so that ARC plus other memory use fits into total RAM size. Use at least Solaris 10 10/09, and for example, you can limit ARC cache usage with adding a line such 
+On Solaris, you should be ware that ``/tmp`` is located in the swap area and writing to ``/tmp`` may conflict with the idea of completely disabling paging. Additional issues may arise when using ZFS. ZFS uses an ARC (adaptive replacement cache) but not the normal page cache. The ARC lives in the kernel space. By default, ARC is allocating all available memory for aggressive caching, where swap space is managed by ZFS devices. The result is extra memory pressure when applications with large heap requirements are present, like Lucene. To remedy the situation, it is often recommended to reduce the ARC size so that ARC plus other memory use fits into total RAM size. Use at least Solaris 10 10/09, and for example, you can limit ARC cache usage with adding a line such 
 
 	set zfs:zfs_arc_max 0x780000000
 
-to /etc/system. While mmap() usually accesses the page cache and not ARC, it is possible that the OS may need to keep two copies of the data around. The latest ZFS implementations try to avoid such issues.
-
-See also:
-
-Ulrich Gräf, "Performance mit ZFS - mit Datenbank Tipps" (in german) - <http://www.as-systeme.de/sites/default/files/events/zfs_1004.pdf>
+to /etc/system. While ``mmap()`` usually accesses the page cache and not ARC, it is possible that the OS may need to keep two copies of the data around. The latest ZFS implementations try to avoid such issues.
 
 Memory footprint of a JVM process
 ---------------------------------
 
-The memory a JVM process consumes can be described in detail, mainly it consists of:
+For understanding better where the JVM puts memory-mapped files, let's examine the memory organization of a JVM process. Mainly it consists of:
 
 - the heap. The maximum size is given by the flag ``-Xmx``. This is where Java objects are allocated.
 - the permanent generation heap ("perm gen"). The maximum size is given by the flag ``-XX:MaxPermSize``. This is where the class metadata objects, interned strings (String.intern), and symbol data are allocated.
@@ -69,13 +59,11 @@ The memory a JVM process consumes can be described in detail, mainly it consists
 - memory mapped .jar and .so files. The JDK's standard class library and application's jar files are often memory mapped. Various shared library  and application shared library files are also memory mapped.
 - thread stacks. The maximum size is given by flag ``-Xss`` or ``-X:ThreadStackSize``.
 - the C/malloc heap. Both the JVM itself and any native code typically uses ``malloc`` to allocate memory from this heap. NIO direct buffers are allocated via malloc.
-- any other ``mmap`` calls. Native code can allocate pages in the address space using mmap (or Java code via JNA)
+- any other ``mmap`` calls. Native code can allocate pages in the address space using ``mmap`` (or Java code via JNA)
 
 Most of these allocations are allocated in terms of virtual memory early, but committed only on demand. Your application's physical memory use may look small at start time, but may get higher later on.
 
-See also
-
-<http://hiroshiyamauchi.blogspot.de/2009/12/jvm-process-memory.html>
+We learned that memory-mapped files allocate pages outside of the Java and C code and heap spaces, instead it allocates them directly in the system's virtual address space.
 
 Memory-mapping
 --------------
@@ -87,22 +75,22 @@ Memory-mapped files can be shared between processes (this might be complex thoug
 Why ``mmap`` is getting more important today
 --------------------------------------------
 
-One important argument for selecting ``mmap`` over paging is the overall progress that has been made in input/output file processing.
-
-In recent years, new server machines in the PC class (Intel CPU architecture) were equipped with more powerful memory management and I/O devices. 
+One important argument for ``mmap`` is the I/O performance. Much progress has been made in input/output file processing. In recent years, new server machines in the PC class (Intel CPU architecture) were equipped with more powerful memory management and I/O devices. 
 
 The challenge was to cope with huge amounts of RAM (because RAM chips were getting cheaper and denser) and with overhauled virtual machine designs where the total address space is virtualized to several logical units that look like a complete hardware layer to the OS. As a result, the memory resources in hardware today can be efficiently managed better than ever. 
 
-Another trend is that compiler tool chains and virtual machine architectures (like the JVM) got tremendously better optimization techniques for local code and local data, avoiding much of cache misses and page faults that lead to paging. For applications with large heaps like Lucene, avoiding unnecessary paging is important. It can slow down the overall performance of a machine significantly.
+Another trend in overall system performance is that compiler tool chains and virtual machine architectures (like the JVM) got tremendously better optimization techniques for local code and local data, avoiding much of cache misses and page faults that lead to paging. For applications with large heaps like Lucene, avoiding unnecessary paging is important. It can slow down the overall performance of a machine significantly.
 
-64-bit hardware - it evolved over time
+64bit hardware - it evolved over time
 --------------------------------------
 
-Yesterday's 64-bit hardware was
+The largest memory address you can point to with a 32bit pointer is 4GB. But is it really enough to know that 64bit operating systems are using 64bit address pointers? The answer is, it depends. We also need to know about some engineering decisions for the hardware of our PC "industry standard" server. Some years ago, 64bit servers were restricted regarding memory subsystems, mostly because it was too expensive for the vendors. UNIX servers had their advantage in virtual memory management over PC server. But today, the situation has much improved in favor of the PC servers.
 
-- limited by RAM slots, e.g. maximum capacity of 4 or 8 GB
+Yesterday's 64bit hardware was
 
-- not able to push data amounts between CPU and memory subsystems at high speed
+- limited by RAM slots, maximum capacity of 4 or 8 GB
+
+- not able to push large gigabytes of data between CPU and memory subsystems at high speed
 
 - MMU address space: 43bit (PowerMac, SUN UltraSPARC III) = 8TB, 48bit (AMD64) = 256 TB
 
@@ -110,7 +98,7 @@ Yesterday's 64-bit hardware was
 
 - and it was limited when reading or writing to external storage devices (by SCSI speed and drives)
 
-whereas today's 64-bit hardware
+whereas today's 64bit hardware
 
 - have lots of memory banks in machines, with more than terabyte capacity
 
@@ -122,60 +110,48 @@ whereas today's 64-bit hardware
 
 And fortunately, beside the application code, the operating systems were improved.
 
-In such a scenario, where you can throw in as much hardware as you can buy into your system and the OS scales with it, you will not need bothering too much about efficiency when you enable ``mmap()``'ed files.
-
-See also
-
-Linus Torvalds, "How big is a 64 bit address space?" - <http://www.realworldtech.com/forum/?threadid=30389&curpostid=30406>
-
-"Understanding Virtual Memory" - <http://www.redhat.com/magazine/001nov04/features/vm/>
-
-Randy Bryant and Dave O’Hallaron, "Virtual Memory: Systems" - <http://www.cs.cmu.edu/afs/cs/academic/class/15213-f10/www/lectures/16-vm-systems.pdf>
-
-"Understanding Memory" - <http://www.ualberta.ca/CNS/RESEARCH/LinuxClusters/mem.html>
-
-"The Solaris Memory System - Sizing,Tools and Architecture" - <http://www.solarisinternals.com/si/tools/memtool/vmsizing.pdf>
+Nowadays, when you are able to throw in as much hardware as you can buy into your system and the OS can scale with it, you will not need bothering too much about the consequences when you enable ``mmap()``'ed files.
 
 Memory overcommit
 -----------------
 
-Memory overcommit is a kernel feature of Linux/BSD/AIX where ``malloc`` never fails. It is usually enabled by default. Processes are able to allocate more virtual memory than the system actually has, on the hope that they won't end up using it. If processes try to use more memory than is available, the Out-of-Memory (OOM) killer comes in and picks some process to kill immediateley in order to recover memory.
+Memory overcommit is a kernel feature of Linux/BSD/AIX where ``malloc`` never fails. It never returns a NULL pointer. In Linux, this is usually enabled by default. Processes are able to allocate more virtual memory than the system actually has, on the hope that they won't end up using it. If processes try to use more memory than is available, the Out-of-Memory killer (OOM killer) comes in and picks some process to exit them immediateley in order to recover memory for the operating system.
 
 Solaris has no memory overcommit feature.
 
-This feature is also relevant for Lucene ``mmap``'ed processes. Starting them will never fail, even with very large memory seetings. But later on, the process memory usage may grow too much, so the OOM killer steps in and might kill the Lucene process without notice.
+This feature is also relevant for Lucene ``mmap``'ed processes. When they request memory, it is likely they will not fail. But later on, when the process memory usage grows, the OOM killer steps in and might kill the Lucene process.
 
-See also
+Locking Lucene process to RAM with ``mlockall``
+----------------------------------------------
 
-"Respite from the OOM killer" - <http://lwn.net/Articles/104179/>
-
-Locking process pages to RAM with mlockall
------------------------------------------
-
-Memory overcommit does not really tell if a Lucene ``mmap``'ed process completely fits into RAM. So another solution is needed for situations with a RAM-only Lucene index. One solution is locking process pages to RAM.
+Memory overcommit does not tell if a Lucene process completely resides in RAM for low latency. One approach to enure low latency is locking the pages of the Lucene process to RAM.
 
 ``mlockall`` is a UNIX system call that causes all of the pages mapped by the address space of a process to be memory resident until unlocked or until the process exits or execs another process. 
 
-By combining it with ``mmap`` it works like removing paging for the process from your system. With an ``mlockall``'ed Lucene, you can be sure that your ``mmap``'ed index files will always reside in RAM, even if memory overcommit is enabled.
+Basically it works like removing paging for this process from your system. With an ``mlockall``'ed Lucene, you can be sure that your Lucene process will always reside in RAM. When you start a process, call ``mlockall``, and it won't fit into RAM, you will get an error, although memory overcommit is enabled.
 
-See also
+``mlockall`` and ``swapoff -a`` have in common that both prevent paging, but one with sharp precision, and the other one like a hammer to the head.
 
-<http://www.quora.com/What-are-the-main-differences-between-mlockall-and-swapoff-a>
+As Linux kernel hacker Robert Love pointed out: 
 
-Elasticsearch: advanced ``mmap`` with ``mlockall``
--------------------------------------------------
+> "Using swapoff for either of the aforementioned use cases is suboptimal. Even if paging is detrimental to a specific application, it is beneficial to the system as a whole. Thus disabling an entire system's paging isn't a best practice. If your application holds secrets in memory that you don't want paged to disk or if your application requires deterministic timing, consider using mlock() or mlockall() to prevent paging."
 
-Elasticsearch is my favorite distributed search and indexing implementation based on Lucene. It offers advanced support for mmap.
+So finally, we have found out why we should prefer ``mlockall`` and not disabling the entire system's paging.
+
+
+Configuring ``mmap`` and ``mlockall`` in Elasticsearch
+-------------------------------------------------------
+
+Elasticsearch is my favorite distributed search and indexing implementation based on Lucene.
 
 Example configuration for enabling ``mmap``'ed Lucene directories in Elasticsearch indexes in elasticsearch.conf: 
 
 	index: 
-		store: 
-			type: mmapfs 
-			fs: 
-				mmapfs: 
-					enabled: true
-	
+	  store: 
+	    type: mmapfs 
+	    fs: 
+	      mmapfs: 
+	        enabled: true
 
 Elasticsearch allows an ``mlockall()`` call at node booting time with the parameter 
 
@@ -185,18 +161,37 @@ in elasticsearch.yml. To complete the configuration the JVM memory size should a
 
 ``bootstrap.mlockall`` might cause the JVM or shell session to exit if allocation of the memory fail with ``unknown mlockall error 0``. Possible reason is that not enough lock memory resources are available on the machine. This can be checked by ``ulimit -l``. The value should be set to ``unlimited``.
 
-See also
-
-<http://www.elasticsearch.org/guide/reference/setup/installation.html>
-
 A final word
 ------------
 
-I traced the 64-bit server market trends now for more than ten years. The future is not hard to see. Servers will be equipped with more and faster RAM, and terabytes of main memory will become popular. For Lucene-based applications it means that RAM-only installations will become more important.
+I traced the 64-bit server trends now for more than ten years. The future is not hard to see. Servers will be equipped with more and faster RAM, and terabytes of main memory will become popular. For Lucene-based applications it means that RAM-only installations will become more important.
 
 Uwe Schindler's article reminded me of the huge progress of recent server technology. I appreciate all the hard engineers work designing so extraordinary systems that most annoying resource limits and performance bottlenecks almost have become part of the past.
 
-If you belong to those who are not blessed with the latest and greatest 64-bit PC server hardware available or you are simply tied to maintain older OSs and applications, do not expect too much from ``mmap``'ed Lucene. With older hardware, obsolete operating system versions, or tight memory resources, ``mmap``'ed Lucene directories are not really a neat solution.
+If you belong to those who are not blessed with the latest and greatest 64bit PC server hardware available or you are simply tied to maintain older OSs and applications, do not expect too much from ``mmap``'ed Lucene directories. With older hardware, obsolete operating system versions, or tight memory resources, ``mmap``'ed Lucene directories and ``mlockall``ed Lucene processes are not always a neat solution.
 
-For you who live on the bright side, do not assume you can just relax after switching to ``mmap``'ed Lucene directories. The work will just begin. Challenges will change to another level. When running machines with large RAM and a standard JVM with more than let's say 32 GB heap, our old friend, the garbage collection, will step in. Under heavy workload, the garbage collector needs to cope with a huge number of heap objects. If not properly configured and upgraded to the latest JVM version, JVMs may stall for minutes just because of the large heap size. Or you can watch out for JVMs that are tuned for large heaps. But that is another interesting topic.
+References
+----------
+
+Red Hat Enterprise Linux 3: System Administration Guide, "Removing swap space" -  <http://docs.redhat.com/docs/en-US/Red_Hat_Enterprise_Linux/3/html/System_Administration_Guide/s1-swap-removing.html>
+
+Ulrich Gräf, "Performance mit ZFS - mit Datenbank Tipps" (in german) - <http://www.as-systeme.de/sites/default/files/events/zfs_1004.pdf>
+
+Hiroshi Yamauchi, "JVM process memory" - <http://hiroshiyamauchi.blogspot.de/2009/12/jvm-process-memory.html>
+
+Linus Torvalds, "How big is a 64 bit address space?" - <http://www.realworldtech.com/forum/?threadid=30389&curpostid=30406>
+
+Norm Murray and Neil Horman, "Understanding Virtual Memory" - <http://www.redhat.com/magazine/001nov04/features/vm/>
+
+Randy Bryant and Dave O’Hallaron, "Virtual Memory: Systems" - <http://www.cs.cmu.edu/afs/cs/academic/class/15213-f10/www/lectures/16-vm-systems.pdf>
+
+University of Alberta, "Understanding Memory" - <http://www.ualberta.ca/CNS/RESEARCH/LinuxClusters/mem.html>
+
+"The Solaris Memory System - Sizing,Tools and Architecture" - <http://www.solarisinternals.com/si/tools/memtool/vmsizing.pdf>
+
+"Respite from the OOM killer" - <http://lwn.net/Articles/104179/>
+
+"What are the main differences between mlockall() and swapoff -a?" - <http://www.quora.com/What-are-the-main-differences-between-mlockall-and-swapoff-a>
+
+"Elasticsearch guide: Installation" - <http://www.elasticsearch.org/guide/reference/setup/installation.html>
 
