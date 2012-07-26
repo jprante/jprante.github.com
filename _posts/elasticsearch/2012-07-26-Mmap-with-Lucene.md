@@ -63,7 +63,7 @@ For understanding better where the JVM puts memory-mapped files, let's examine t
 
 Most of these allocations are allocated in terms of virtual memory early, but committed only on demand. Your application's physical memory use may look low at start time, but may get higher later on.
 
-We learned that memory-mapped files in Lucene allocate pages outside of the Java and C code heap spaces, instead it allocates them directly in the system's virtual address space.
+We learned that memory-mapped files in Lucene allocate pages outside of the Java code heap spaces, instead it allocates them directly in the system's virtual address space.
 
 Memory-mapping
 --------------
