@@ -3,11 +3,13 @@ layout: post
 category: applications
 title: "Memory-mapped files with Lucene: some more aspects"
 tagline: "by Jörg Prante"
-tags: [lucene, elasticsearch, unix, linux, solaris, virtual emory]
+tags: [lucene, elasticsearch, unix, linux, solaris, virtual memory]
 comments: true
 ---
 
 ![Server Mainboard](/assets/images/flickr-2142582850-original.jpeg)
+
+*[Licensed under Creative Commons](http://creativecommons.org/licenses/by/2.0/)*
 
 In a great article about using memory-mapped files in Lucene, Uwe Schindler discussed [why switching Lucene directories to MMapDirectory](http://blog.thetaphi.de/2012/07/use-lucenes-mmapdirectory-on-64bit.html) is most preferable today.
 
@@ -17,7 +19,7 @@ One question that came up to me was: why are memory-mapped files a better choice
 
 Another one: do Linux/Solaris offer adequate solutions to the challenges of switching to ``mmap``'ed Lucene directories?
 
-And finally: are there already examples for ``mmap``-related challenges?
+And finally: are there already answers to ``mmap``-related questions?
 
 Before stepping into trying to find answers, let me quickly resume what the paging feature is as we know it from UNIX-like operating systems.
 
@@ -80,7 +82,7 @@ Memory-mapping
 
 A memory-mapped file is virtual memory which has been assigned a direct byte-for-byte correlation with some portion of a resource. This resource is typically a file that is physically present on-disk, but can also be a device, shared memory object, or other resource that the OS can reference through a file descriptor.
 
-Memory-mapped files can be shared across processes (this might be complex though). When Java directly allocates buffers or maps files to memory, they are allocated outside the Java heap.
+Memory-mapped files can be shared between processes (this might be complex though). When Java directly allocates buffers or maps files to memory, they are allocated outside the Java heap.
 
 Why ``mmap`` is getting more important today
 --------------------------------------------
@@ -93,8 +95,8 @@ The challenge was to cope with huge amounts of RAM (because RAM chips were getti
 
 Another trend is that compiler tool chains and virtual machine architectures (like the JVM) got tremendously better optimization techniques for local code and local data, avoiding much of cache misses and page faults that lead to paging. For applications with large heaps like Lucene, avoiding unnecessary paging is important. It can slow down the overall performance of a machine significantly.
 
-64-bit hardware - it evolved over the time
------------------------------------------
+64-bit hardware - it evolved over time
+--------------------------------------
 
 Yesterday's 64-bit hardware was
 
@@ -106,7 +108,7 @@ Yesterday's 64-bit hardware was
 
 - limited by address bus width: most manufacturers did not exploit the address space beyond 4 GB because it was too expensive. For Intel PCs in the pre-AMD64 era, PAE (page address extension) allowed for addressing up to 64 GB
 
-- and it was suffering when reading or writing to external storage devices (low SCSI speed and drives)
+- and it was limited when reading or writing to external storage devices (by SCSI speed and drives)
 
 whereas today's 64-bit hardware
 
@@ -141,7 +143,7 @@ Memory overcommit is a kernel feature of Linux/BSD/AIX where ``malloc`` never fa
 
 Solaris has no memory overcommit feature.
 
-This feature is also relevant for Lucene ``mmap``'ed processes. Starting them will never fail, even with very large memory seetings. But later on, the process memory usage may grow too much, so the OOM killer steps in and might kill it without notice.
+This feature is also relevant for Lucene ``mmap``'ed processes. Starting them will never fail, even with very large memory seetings. But later on, the process memory usage may grow too much, so the OOM killer steps in and might kill the Lucene process without notice.
 
 See also
 
