@@ -86,7 +86,7 @@ Note, we use a multilingual library catalog setup (multilingual setup is not the
             }
          }
       }
-   }
+    }
 
 ## Checking the edge n-gram creation
 
@@ -322,7 +322,7 @@ Note how the image icon is excluded from the autocompletion value, since we shou
 	                    html: true,
 	                    source: function(request, response) {
 	                        $.ajax({
-	                            url: "http://index.hbz-nrw.de/query/services/autocomplete/hbz/title",
+	                            url: "http://xbib.org/services/autocomplete",
 	                            type: "post",
 	                            data: {
 	                                field: "xbib:titleAutocomplete",
