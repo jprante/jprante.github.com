@@ -23,7 +23,7 @@ For our use case, we build a library catalog title autocompletion, where 80% of 
 
 ## The n-gram method
 
-How will the autocompletion works? One approach is changing the normal indexing of title words. A well-known method is using n-grams.
+How will the autocompletion work? One approach is changing the normal indexing of title words. A well-known method is using n-grams.
 
 In the fields of computational linguistics, an n-gram is a contiguous sequence of n items from a text sequence. N-gram matching implementation is simple and provides good performance. The algorithm is based on the principle: if a word A matches a word B containing some errors, they will most likely have at least one common substring of length 'n'.
 
