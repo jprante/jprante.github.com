@@ -17,21 +17,23 @@ Autocompletion is the provision of words that are frequently used in response to
 
 Autocomplete or word completion works so that when the writer writes the first letter or letters of a word, a program predicts one or more possible words as choices.
 
-In this text, we will show how to implement a solution for autocompletion in a search frontend for Elasticsearch. The architecture consists of a jQuery page, presenting a search form to the user, submitting query terms to a gateway service, and receiving JSON results for the autocompleted word list.
+In this text, we will show how to implement a solution for autocompletion, a search frontend for Elasticsearch. It consists of a jQuery page, presenting a search form to the user, submitting query terms to a gateway service, and receiving JSON results for the autocompleted word list.
 
-In our use case we discuss here, we build a library catalog title autocompletion, where users are 80% of all queries are search for title words.
+For our use case, we build a library catalog title autocompletion, where 80% of user queries are searches for title keywords. While typing, users should immediately got aware of titles matching their requests, and Elasticsearch should do the hard work to filter the relevant documents in near realtime.
 
 ## The n-gram method
 
-In the fields of computational linguistics, an n-gram is a contiguous sequence of n items from a text sequence. N-gram matching implementation is simple and provides good performance. This algorithm is based on the principle: if a word A matches a word B containing some errors, they will most likely have at least one common substring of length 'n'.
+How will the autocompletion works? One approach is changing the normal indexing of title words. A well-known method is using n-grams.
+
+In the fields of computational linguistics, an n-gram is a contiguous sequence of n items from a text sequence. N-gram matching implementation is simple and provides good performance. The algorithm is based on the principle: if a word A matches a word B containing some errors, they will most likely have at least one common substring of length 'n'.
 
 At indexing step, the word is partitioned into n-grams, the word is added to lists that correspond each of these n-grams. At search time, the query is also partitioned into n-grams, and for each of them corresponding lists are scanned using the metric.
 
-One observation for Elasticsearch word queries is that users enter characters from the front in the order the characters are written in the word, so an effective improvement of n-grams is introducing *edged* n-grams, where the word n-grams are always starting from one of the word edges, here, the front.
+One observation is that users of a library catalog enter characters from the front in the order the characters are written in the title word, so an effective improvement of n-grams is introducing *edged* n-grams, where the word n-grams are always starting from one of the word edges, here, the front.
 
 ## The Elasticsearch setting
 
-Note, we use a multilingual library catalog setup. We add edge n-gram analysis by a filter we call **edgengramfilter**. It builds n-grams from the word front, with a minimum length of 2 characters and a maximum of 16 characters.
+Note, we use a multilingual library catalog setup (multilingual setup is not the focus now so details are not discussed now). We add edge n-gram analysis by a filter we call **edgengramfilter**. It builds n-grams from the word front, with a minimum length of 2 characters and a maximum of 16 characters.
 
 	"settings" : {
       "index" : {
