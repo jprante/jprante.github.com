@@ -8,12 +8,14 @@ comments: false
 ---
 {% include JB/setup %}
 
-XML-Tags sind aus Sicht des Semantic Web nicht besser als natürliche Sprache. Denn auch sie sind Wörter, die mehrdeutig sein können, und deren Beziehungen zueinander nicht eindeutig definiert sind. Im folgenden ersten Beispiel haben für den des Deutschen mächtigen Lesenden die Tags sehr wohl eine Bedeutung, für eine Maschine hingegen nicht. Eine Maschine versteht genau so viel wie im zweiten Beispiel:
+XML-Tags sind aus Sicht des Semantic Web nicht besser als natürliche Sprache. Denn auch sie sind Wörter, die mehrdeutig sein können, und deren Beziehungen zueinander nicht eindeutig definiert sind. Im folgenden ersten Beispiel haben für den des Deutschen mächtigen Lesenden die Tags sehr wohl eine Bedeutung, für eine Maschine hingegen nicht. 
 
 	<Buch reihe="Historische Klassiker">
 	    <Titel>Faust</Titel>
 	    <Autor>Goethe</Autor>
 	</Buch>
+
+Eine Maschine versteht genau so viel wie im zweiten Beispiel:
 
 	<iorvmior kekd="Historische Klassiker">
 	    <wrtd>Faust</wrtd>
