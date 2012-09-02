@@ -66,6 +66,9 @@ RDF-Beispiel mit URI-Syntax in spitzen Klammern:
 
 Bei Verwendung von URIs wird deren zentrale Rolle im Semantic Web deutlich: sie dienen im Graphen sowohl als eindeutige Bezeichner einer Ressource, als auch der Aufzählung von Prädikaten und der Verweisung auf andere Ressourcen. Es ist üblich, englischsprachige URIs zu formulieren, man kann jedoch auch mit Hilfe von *Internationalized Resource Identifiers* ([IRIs](http://www.ietf.org/rfc/rfc3987.txt)) beliebige Sprachen kodieren.
 
+Veranschaulichung von RDF-Graphen
+---
+
 Ein RDF-Graph kann auf viele Arten veranschaulicht werden - dieser Prozess wird Serialisierung des Graphen genannt, es werden dabei alle Knoten und Kanten in einer algorithmischen Reihenfolge durchlaufen und ausgegeben. Im obigen Beispiel mit URI-Syntax ist dies bereits geschehen - es wurde zeilenweise serialisiert.
 
 Die erste bekannte frühe Form einer RDF-Repräsentation war [RDF/XML](http://www.w3.org/TR/REC-rdf-syntax/) und wurde für die Spezifikation von RDF verwendet. Sie ist jedoch kaum leserlich, wenig einprägsam und speicherverbrauchend, denn der Graph wird mit Hilfe der XML-Markuptechnologie dargestellt. Inzwischen beliebt gewordene Formate, weil kompakter und leserlicher darstellbar, sind Serialisierungen wie 
