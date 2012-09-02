@@ -2,12 +2,11 @@
 ---
 layout: post
 category : lessons
+title: "Warum reicht XML nicht aus?"
 tags : [intro, beginner, tutorial, semanticweb]
+comments: false
 ---
 {% include JB/setup %}
-
-Warum reicht XML nicht aus?
----
 
 XML-Tags sind aus Sicht des Semantic Web nicht besser als natürliche Sprache. Denn auch sie sind Wörter, die mehrdeutig sein können, und deren Beziehungen zueinander nicht eindeutig definiert sind. Im folgenden ersten Beispiel haben für den des Deutschen mächtigen Lesenden die Tags sehr wohl eine Bedeutung, für eine Maschine hingegen nicht. Eine Maschine versteht genau so viel wie im zweiten Beispiel:
 
