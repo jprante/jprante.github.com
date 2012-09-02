@@ -38,7 +38,7 @@ Wie weist das Semantic Web Tags Bedeutungen und Beziehungen zu?
 
 ![Buch](/assets/images/semanticweb-buch.png)
 
-Aus Sicht der Informatik wird RDF, das dem Semantic Web zugrundeliegende Datenmodell, als Graph kodiert. Ausgangspunkt ist das Konzept der Aussagenlogik. Eine Aussage, die als Subjekt/Prädkat/Objekt-Tripel formuliert ist, lässt sich z.B. in primitiver Form mit Hilfe von drei Knoten und zwei Kanten in einem Graphen darstellen. Das ist ein abstraktes Modell für Faktensammlungen, wie sie beispielsweise in einem Bibliothekskatalog vorkommen. 
+Aus Sicht der Informatik wird RDF, das dem Semantic Web zugrundeliegende Datenmodell, als Graph kodiert. Ausgangspunkt ist das Konzept der Aussagenlogik. Eine Aussage, die als Subjekt/Prädkat/Objekt-Tripel formuliert ist, lässt sich z.B. in primitiver Form mit Hilfe von zwei Knoten und einer Kante in einem Graphen darstellen. Das ist ein abstraktes Modell für Faktensammlungen, wie sie beispielsweise in einem Bibliothekskatalog vorkommen. 
 
 Einer *Ressource* (gleichbedeutend mit einer verzeichneten Medieneinheit in einem Katalog) werden also bestimmte Eigenschaften zugesichert. Hinzu kommt die Möglichkeit, in einer Aussage auf eine andere Aussage in einem anderen Graphen Bezug nehmen und somit eine Beziehung zu anderen Ressourcen aufstellen zu können, die ausserhalb des aktuellen Kontexts existieren. Deren Existenz braucht erst später überprüft werden - man weiss nicht, ob die Ressource existiert oder nicht (man nennt dies auch *open world assumption*, diese erlaubt es, dass RDF schemafrei ist, also ohne Dokumentation auskommt).
 
