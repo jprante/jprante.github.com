@@ -23,7 +23,7 @@ This blog tries to demystify the preconfigured Elasticsearch settings and discus
 
 h2. Overview of the Elasticsearch JVM settings
 
-These are the preconfigured setting for Elasticearch 0.19.11
+These are the preconfigured settings for Elasticearch 0.19.11.
 
 table(table).
 |.*JVM parameter* |.*Elasticsearch default value* |.*Environment variable* |
