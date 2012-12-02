@@ -17,9 +17,9 @@ This occasion inspired me to write a blog post about the intriguing details abou
 
 Elasticsearch comes with **some preconfigured settings** for the Java Virtual Machine (JVM). Normally, because they have been chosen very carefully, you don't need to care much about them, and you can use Elasticseach right away.
 
-But it may happen, while monitoring the memory your Elasticsearch cluster nodes, you could get tempted by changing some of the JVM settings. Will it improve your situation or not? 
+But it may happen, while monitoring the memory of your Elasticsearch nodes, you could get tempted by changing some of the settings. Will it improve your situation or not? 
 
-This blog tries to demystify the preconfigured Elasticsearch settings and discusses the most common adjustments.
+This blog tries to demystify the preconfigured Elasticsearch settings and discusses the most common adjustments. Finally, some recoomendations are given how tunings should be undertaken.
 
 h2. Overview of the Elasticsearch JVM settings
 
