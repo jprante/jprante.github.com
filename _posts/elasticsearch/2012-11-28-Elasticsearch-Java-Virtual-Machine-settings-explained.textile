@@ -218,7 +218,7 @@ fn7. John Coomes, Tony Printezis, "Performance Through Parallelism: Java HotSpot
 
 fn8. "'The maximum useful heap size is 8GB.'":http://permalink.gmane.org/gmane.comp.db.cassandra.user/23417 Aaron Morton, Apache Cassandra, DataStax MVP, "'Concurrent Mark and Sweep Problems - larger heap sizes Xmx greater 6GB'":http://www.aioug.org/sangam12/Presentations/20155.pdf Prateek Khanna, Oracle
 
-fn9. "But in certain cases object may be allocated directly in old space and CMS cycle could start while Eden has lots of objects. In this case initial mark can be 10-100 times slower which is bad. Usually this is happening due to allocation of very large objects (few megabyte arrays). To avoid these long pauses you should configure reasonable –XX:CMSWaitDuration." "Alexey Ragozin, Understanding GC pauses in JVM, HotSpot's minor GC.":http://blog.griddynamics.com/2011/06/understanding-gc-pauses-in-jvm-hotspots.html
+fn9. "But in certain cases object may be allocated directly in old space and CMS cycle could start while Eden has lots of objects. In this case initial mark can be 10-100 times slower which is bad. Usually this is happening due to allocation of very large objects (few megabyte arrays). To avoid these long pauses you should configure reasonable –XX:CMSWaitDuration." "Alexey Ragozin, Understanding GC pauses in JVM, HotSpot's CMS collector.":http://blog.griddynamics.com/2011/06/understanding-gc-pauses-in-jvm-hotspots_02_.html
 
 fn10. Elasticsearch Guide, "Merge":http://www.elasticsearch.org/guide/reference/index-modules/merge.html
 
