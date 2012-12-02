@@ -201,7 +201,7 @@ The JVM memory diagram was taken from "http://sureshsvn.com/jvm.html":http://sur
 
 fn1. "Updated Java 6 EOL date":https://blogs.oracle.com/henrik/entry/updated_java_6_eol_date 
 
-fn2. It was reported to the author that Elasticsearch can index 50 million documents with the default heap setting before the performance degraded near to a halt.
+fn2. It was "reported":https://groups.google.com/forum/#!topic/elasticsearch/qmCI4sA6lPE that Elasticsearch can index 50 million documents with the default heap setting before the performance degraded near to a halt.
 
 fn3. "http://bugs.sun.com/bugdatabase/view_bug.do?bug_id=7029167":http://bugs.sun.com/bugdatabase/view_bug.do?bug_id=7029167 
 
