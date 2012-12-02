@@ -69,15 +69,15 @@ Some of these settings were examined by efforts in projects like Apache Cassandr
  
 In summary, the Elasticsearch preconfigured settings
 
-* overrides automatic heap memory setting of the JVM in favor of adjusting the *maximum default heap size* to a mere *1GB*
-* assume that forced garbage collection runs at *75 percent allocation of your heap size* do not interfere with your workload requirements
-* disable the *Java 7 default G1 collector*
+* override the automatic heap memory settings of the JVM in favor of adjusting the *maximum default heap size* to a mere *1GB*
+* assume that garbage collection runs at *75 percent allocation of your heap size* will not interfere with your workload performance requirements
+* disable the *Java 7 default G1 collector* if you run Elasticsearch on Java 7 later than *7u4*
 
 h2. The memory structure of a JVM process
 
-Before we can give some rules of thumb for Elasticsearch tuning, we discuss some concepts of the JVM, so we can explain why the settings in the Elasticsearch distribution are reasonable.
+Before we can give some rules of thumb for Elasticsearch tuning, we discuss some concepts of the JVM, so we can explain why the preconfigured settings in the Elasticsearch distribution make sense.
 
-For now, we assume the Sun/Oracle HotSpot JVM. Elasticseach can run under JVMs of different vendors, but this is not the topic here.
+For now, we assume the Sun/Oracle HotSpot JVM in the discussion. Elasticseach can run under JVMs of different vendors, which is interesting, but this is not the topic of this post.
 
 !/assets/images/jvm.png!
 
@@ -89,11 +89,11 @@ The JVM memory consists of several segments.
 * the *heap memory*, where handles (object references) and objects live
 * the *direct buffer*, where buffers for direct input/output of data is stored
 
-The heap memory is an important size, because Java depends on a reasonably sized heap size, and the JVM can be instructed to grab only a limited amount of memory from the operating system during the JVM lifetime. 
+The heap memory is an important size, because Java depends on a reasonably sized heap, and the JVM can be instructed to grab only a limited amount of memory for the heap from the operating system that will be reserved during the JVM lifetime. 
 
-If the heap is too small, many garbage collections are run and chances are higher to encounter OutOfMemory exceptions. 
+If the heap is *too small*, many garbage collections are run and chances are higher to encounter OutOfMemory exceptions. 
 
-If the heap is too large, garbage collections are delayed, but if they run, the algorithm is challenged to cope with a higher number of live heap data. And, the operating system will be put under stress, the chance of paging the JVM process is higher with large heaps.
+If the heap is *too large*, garbage collections are delayed, but if they run, the algorithm is challenged to cope with a higher number of live heap data. And, the operating system will be put under stress, the chance of paging the JVM process is higher with large heaps.
 
 Note, with the Concurent-Mark-Sweep garbage collector, Java does not release memory back to the operating system, so it is very important to configure a reasonable heap start size and a maximum heap size.
 
@@ -125,26 +125,28 @@ Since Java JDK 7u4, the Garbage-First (G1) collector is the default garbage coll
 
 The G1 collector is targeted to gain more throughput, not more speed [11]. It works best if
 
-* more than 50% of the Java heap is occupied with live data
+* more than *50%* of the Java heap is occupied with live data
 * the rate of object allocation rate or promotion varies significantly
-* undesired long garbage collection or compaction pauses (longer than 0.5 to 1 second) take place
+* undesired *long garbage collection or compaction pauses* (longer than 0.5 to 1 second) take place
 
-Note, if using G1 garbage collector, it can be expected that memory within the maximum heap limit might be given back to the operating system. 
+Note, if using G1 garbage collector, it can be expected that memory no longer used for the heap *might be given back to the operating system*. 
 The disadvantage of the G1 collector is less application performance due to higher CPU utilization.  So, with enough RAM and average CPU power, CMS can hold the edge over G1 [12].
 
-For Elasticsearch, the G1 means no more stop-the-world pauses and more flexible memory management, because buffer memory and system caches for input/output can better utilize the RAM resources of the machine. This comes at the price of less maximum performance because G1 utilizes more CPU.
+For Elasticsearch, the G1 means no long stop-the-world pauses and more flexible memory management, because buffer memory and system caches for input/output can better utilize the RAM resources of the machine. This comes at the price of *less maximum performance* because G1 utilizes more CPU.
 
 h2. Strategies against performance degradation
 
-First, make yourself sure about your performance strategy. Do you want maximum speed or maximum throughput?
+So. maybe you read this blog post because you want to get hints how to tackle performance degradation, und you are sure your current heap settings might be one of the cause.
+
+First, make yourself clear about your performance strategy. Do you want maximum speed or maximum throughput?
 
 * log everything and collect statistics and settings for complete diagnostics
 * read log files and analyze events
 * select your tuning target (maximum performance or maximum throughput)
 * plan your tweaking
-* apply your new settings
-* enable monitoring of your settings
-* repeat from the beginning
+* apply your new settings 
+* enable monitoring of the system with the new settings
+* repeat from the beginning if new settings did not improve the situation
 
 h3. Elasticsearch Garbage collection logging format
 
@@ -189,7 +191,7 @@ Know your *performance strategy* before tuning. Decide if you want to tune for *
 
 To *enhance the CMS garbage collector*, you might add a reasonable -XX:CMSWaitDuration parameter.
 
-If you operate with *very large heaps of more than 6-8 GB*, that is higher than the size the CMS garbage collector was designed for, and you encounter *unacceptable long stop-the-world pauses*, adjust the *CMSInitiatingOccupancyFraction* setting to reduce the probability of long GC runs, or try to *reduce the maximum heap* under the limit, or enable the *G1 garbage collector*.
+If you operate with *very large heaps of more than 6-8 GB*, that is higher than the size the CMS garbage collector was designed for, and you encounter *unacceptable long stop-the-world pauses*, you have several options. Adjust the *CMSInitiatingOccupancyFraction* setting to reduce the probability of long GC runs, or try to *reduce the maximum heap* under the limit, or enable the *G1 garbage collector*.
 
 Learn about *the art of Garbage Collection tuning*. If you want to become a master, output the list of available JVM options, together with the preconfigured values with the command @java -XX:+UnlockDiagnosticVMOptions -XX:+PrintFlagsFinal -version@ and start tweaking.
 
