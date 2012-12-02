@@ -136,7 +136,7 @@ For Elasticsearch, the G1 means no long stop-the-world pauses and more flexible 
 
 h2. Strategies against performance degradation
 
-So. maybe you read this blog post because you want to get hints how to tackle performance degradation, und you are sure your current heap settings might be one of the cause.
+So, maybe you read this blog post because you want to get hints how to tackle performance degradation, and you are sure your current heap settings might be one of the cause.
 
 First, make yourself clear about your performance strategy. Do you want maximum speed or maximum throughput?
 
