@@ -1,0 +1,236 @@
+---
+layout: post
+category: 
+title: "Elasticsearch Java Virtual Machine settings explained"
+tagline: "by Jörg Prante"
+tags: [java, jvm, elasticsearch]
+comments: true
+---
+
+!/assets/images/toy-domo-domo-kun-480x800.jpg!
+
+h2. Introduction
+
+Today, it finally happened. Java 6 ("Mustang"), which appeared early 2006 and is still in production at many places, has reached end of life. There is no longer a reason not to transition to Java 7 ("Dolphin") [1].
+
+This occasion inspired me to write a blog post about the intriguing details about the subtleties of Java 6 and 7 Virtual Machine settings and Elasticsearch.
+
+Elasticsearch comes with **some preconfigured settings** for the Java Virtual Machine (JVM). Normally, because they have been chosen very carefully, you don't need to care much about them, and you can use Elasticseach right away.
+
+But it may happen, while monitoring the memory your Elasticsearch cluster nodes, you could get tempted by changing some of the JVM settings. Will it improve your situation or not? 
+
+This blog tries to demystify the preconfigured Elasticsearch settings and discusses the most common adjustments.
+
+h2. Overview of the Elasticsearch JVM settings
+
+These are the preconfigured setting for Elasticearch 0.19.11
+
+table(table).
+|.*JVM parameter* |.*Elasticsearch default value* |.*Environment variable* |
+|-Xms                                   | 256m                          | ES_MIN_MEM |
+|-Xmx                                   | 1g                            | ES_MAX_MEM |
+|-Xms and -Xmx                          |                       | ES_HEAP_SIZE |
+|-Xmn                                   |                       | ES_HEAP_NEWSIZE |
+|-XX:MaxDirectMemorySize                |                       | ES_DIRECT_SIZE |
+|-Xss                                   | 256k | |
+|-XX:UseParNewGC                        | + | |
+|-XX:UseConcMarkSweepGC                 | + | |
+|-XX:CMSInitiatingOccupancyFraction     | 75 | |
+|-XX:UseCMSInitiatingOccupancyOnly     | + | |
+|-XX:UseCondCardMark                   | (commented out) | |
+
+The first you notice is that Elasticsearch reserves the JVM heap memory between *256 MB* and *1 GB*.
+
+This setup is for development and demonstration environments. Developers can install Elasticsearch by simply unzipping the distribution package and executing @./bin/elasticsearch -f@ from the command line. While this is great for development and works in many cases [2], it does not suffice in situations where you need more memory for your Elasticsearch workload, and you have far more than 2 GB RAM available.
+
+*ES_MIN_MEM/ES_MAX_MEM* control the heap settings. The new variable is *ES_HEAP_SIZE*, it is a more convenient choice because it sets the same value for the start and the max heap size. This suggests the JVM *not to use fragments of memory* for heap allocation, if possible. Memory fragmentation is bad for maximum performance.
+
+*ES_HEAP_NEWSIZE* is an optional parameter, it controls a subset of the heap, the size for the young generation.
+
+*ES_DIRECT_SIZE* controls the direct memory, the area where the JVM manages the data that is used in the NIO framework. Direct memory can be mapped to the virtual address space, which is more efficient on machines with 64bit architecture, since it circumvents the filesystem buffer. Elasticsearch opts for *no restriction for direct memory*.
+
+There are several collectors in Java JVMs for historical reasons. They can be enabled by the following combination of JVM parameters:
+
+table(table).
+|.*JVM parameter* |.*Garbage collector* |
+|-XX:+UseSerialGC |serial collector |
+|-XX:+UseParallelGC |parallel collector |
+|-XX:+UseParallelOldGC |Parallel compacting collector |
+|-XX:+UseConcMarkSweepGC |Concurrent-Mark-Sweep (CMS) collector |
+|-XX:+UseG1GC |Garbage-First collector (G1) |
+
+*UseParNewGC* and *UseConcMarkSweepGC* combines both parallelism and concurrency in the garbage collector. *UseConcMarkSweepGC* automatically selects *UseParNewGC* and this disables the serial collector. This is the default since Java 6.
+
+*CMSInitiatingOccupancyFraction* refines a Concurrent-Mark-Sweep garbage collector setting; it sets the old generation occupancy threshold that triggers collections to 75. The size of the old generation is the size of the heap minus the size of the new generation. This tells the JVM to always start a garbage collection when the heap is 75% full. This is an estimated value, since smaller heaps may need earlier GC starts.
+
+*UseCondCardMark* would issue an additional check in the card table entry use in the garbage collector before storing a value. UseCondCardMark does not affect the Garbage-First collector. It is recommended in highly concurrent environments [3]. In Elasticsearch, it is listed as a commented out value.
+
+Some of these settings were examined by efforts in projects like Apache Cassandra that have similar resource demands like Elasticsearch regarding the JVM [4].
+ 
+In summary, the Elasticsearch preconfigured settings
+
+* overrides automatic heap memory setting of the JVM in favor of adjusting the *maximum default heap size* to a mere *1GB*
+* assume that forced garbage collection runs at *75 percent allocation of your heap size* do not interfere with your workload requirements
+* disable the *Java 7 default G1 collector*
+
+h2. The memory structure of a JVM process
+
+Before we can give some rules of thumb for Elasticsearch tuning, we discuss some concepts of the JVM, so we can explain why the settings in the Elasticsearch distribution are reasonable.
+
+For now, we assume the Sun/Oracle HotSpot JVM. Elasticseach can run under JVMs of different vendors, but this is not the topic here.
+
+!/assets/images/jvm.png!
+
+The JVM memory consists of several segments.
+
+* the *JVM code* itself, with internal code and data, and internal interfaces, like profiling and monitoring agents or bytecode instrumentation
+* the *non-heap memory*, where classes are loaded
+* the *stack memory*, where frames (local variables and operands for each thread) live
+* the *heap memory*, where handles (object references) and objects live
+* the *direct buffer*, where buffers for direct input/output of data is stored
+
+The heap memory is an important size, because Java depends on a reasonably sized heap size, and the JVM can be instructed to grab only a limited amount of memory from the operating system during the JVM lifetime. 
+
+If the heap is too small, many garbage collections are run and chances are higher to encounter OutOfMemory exceptions. 
+
+If the heap is too large, garbage collections are delayed, but if they run, the algorithm is challenged to cope with a higher number of live heap data. And, the operating system will be put under stress, the chance of paging the JVM process is higher with large heaps.
+
+Note, with the Concurent-Mark-Sweep garbage collector, Java does not release memory back to the operating system, so it is very important to configure a reasonable heap start size and a maximum heap size.
+
+The non-heap memory is allocated by the Java application automatically. There is no way to control this amount by a parameter because it is determined by the size (the footprint) of the Java application code.
+
+The stack memory is alloacted per thread. In Elasticsearch, the size of the stack per thread had to be increased from *128k* to *256k*, because Java 7 stack frames are larger than in Java 6. One reason is that Java 7 supports new programming language features that utilize space on stack frames. For example, continuations, a concept known from functional programming languages, have been introduced [5]. Continuations are useful for coroutines, for green threads, or for fibers [6]. When implementing non-blocking I/O, the big advantage is, code can be written as if threads were used, but the runtime will use non-blocking I/O under the hood. Elasticsearch makes use of several thread pools. Because the Netty I/O framework and Guava are base components of Elasticsearch, there is a potential to exploit the new threading optimization features of Java 7 under the hood.
+
+It is a challenge to find a good value for the maximum stack size, because the stack space consumption can't be easily compared between different CPU architectures and operating systems, not even between JVM versions. There is a vendor builtin stack size default in the stock JVM that depends on the CPU architecture and the operating system. But are they really suitable under all conditions? E.g. Solaris Sparc 64bit has a JVM Xss default of 512k because of the larger address pointers, and Solaris x86 has 320k. Linux has lower limits down to 256k. Windows 32bit with Java 6 has a default of 320k and Windows 64bit even 1024m stack space.
+
+h2. The Large Heap Challenge
+
+Today, several GB of RAM are common. But not long time ago, your sysadmins broke out in tears if you asked them for some extra gigabyte of main memory for your latest J2EE app. 
+
+The Java garbage collectors were improved by the advent of Java 6 in 2006. Since then, they were able to run many tasks in parallel and reduced the pauses, the stop-the-world phases. The Concurrent-mark-sweep algorithm is a generational, mostly concurrent, parallel, non-moving garbage collection [7]. But unfortunately, it does not scale with the number of live data on the heap. Prateek Khanna and Aaron Morton gave numbers about how large a heap can be handled by the CMS garbage collector [8].
+
+h3. Avoiding Stop-the-world phases
+
+We learned that Elasticsearch preconfigured the CMS garbage collector. This does not prevent long GC pauses, it only reduces the probability. CMS is a low pause collector, but still has some edge cases. When large megabyte arrays are on the heap, or in emergency cases, CMS may take much more time than expected [9].
+
+The creation of megabyte-sized arrays are common to Lucene segment-based indexing when it comes to segment merging. If you want to try to reduce some extra load from the CMS garbage collector, adjust the number of segments for the Lucene merging in the parameter @index.merge.policy.segments_per_tier@ [10].
+
+h3. Minimize paging
+
+The risk of a large heap is higher memory pressure. Note, if Java can operate with large heaps, this memory is no longer available to the rest of the system. If memory gets tight, operating systems tend to react with paging (swapping), and, in emergency situations, when all other methos of gaining memory back, even with process killing. If paging occurs, overall performance will degrade. and also garbage collection performance degrades. So, don't allocate too much memory for the heap.
+
+h3. The Garbage first alternative
+
+Since Java JDK 7u4, the Garbage-First (G1) collector is the default garbage collector of Java 7. It is targeted for multi-processor machines with very huge memory. It meets low pause time goals with high probability. Whole-heap operations, such as global marking, are performed concurrently with the application threads. This prevents interruptions proportional to heap or live-data size.
+
+The G1 collector is targeted to gain more throughput, not more speed [11]. It works best if
+
+* more than 50% of the Java heap is occupied with live data
+* the rate of object allocation rate or promotion varies significantly
+* undesired long garbage collection or compaction pauses (longer than 0.5 to 1 second) take place
+
+Note, if using G1 garbage collector, it can be expected that memory within the maximum heap limit might be given back to the operating system. 
+The disadvantage of the G1 collector is less application performance due to higher CPU utilization.  So, with enough RAM and average CPU power, CMS can hold the edge over G1 [12].
+
+For Elasticsearch, the G1 means no more stop-the-world pauses and more flexible memory management, because buffer memory and system caches for input/output can better utilize the RAM resources of the machine. This comes at the price of less maximum performance because G1 utilizes more CPU.
+
+h2. Strategies against performance degradation
+
+First, make yourself sure about your performance strategy. Do you want maximum speed or maximum throughput?
+
+* log everything and collect statistics and settings for complete diagnostics
+* read log files and analyze events
+* select your tuning target (maximum performance or maximum throughput)
+* plan your tweaking
+* apply your new settings
+* enable monitoring of your settings
+* repeat from the beginning
+
+h3. Elasticsearch Garbage collection logging format
+
+Elasticsearch warns in the logs about long garbage collection runs like this:
+
+bc.. [2012-11-26 18:13:53,166][WARN ][monitor.jvm              ] [Ectokid] [gc][ParNew][1135087][11248] duration [2.6m], collections [1]/[2.7m], total [2.6m]/[6.8m], memory [2.4gb]->[2.3gb]/[3.8gb], all_pools {[Code Cache] [13.7mb]->[13.7mb]/[48mb]}{[Par Eden Space] [109.6mb]->[15.4mb]/[1gb]}{[Par Survivor Space] [136.5mb]->[0b]/[136.5mb]}{[CMS Old Gen] [2.1gb]->[2.3gb]/[2.6gb]}{[CMS Perm Gen] [35.1mb]->[34.9mb]/[82mb]}
+
+p. The usage is documented in the class JvmMonitorService.
+
+table(table).
+|.Logfile |.Explanation |
+|@gc@ | garbage collection run |
+|@ParNew@ | new parallel garbage collector |
+|@duration 2.6m@ | Garbage collection took 2.6 minutes |
+|@collections [1]/[2.7m]@ | one collection run, with a total of 2.7 minutes |
+|@memory [2.4gb]->[2.3gb]/[3.8gb]@ | usage number of pool 'memory', it was previously 2.4gb, now is 2.3gb, with a total pool size of 3.8gb |
+|@Code Cache [13.7mb]->[13.7mb]/[48mb]@ | usage numbers for pool 'code cache' |
+|@Par Eden Space [109.6mb]->[15.4mb]/[1gb]@ | usage numbers for pool 'Par Eden Space' |
+|@Par Survivor Space [136.5mb]->[0b]/[136.5mb]@ | usage numbers for pool 'Par Survivor Space' |
+|@CMS Old Gen [2.1gb]->[2.3gb]/[2.6gb]@ | usage numbers for pool 'CMS Old Gen' |
+|@CMS Perm Gen [35.1mb]->[34.9mb]/[82mb]@ | usage numbers for pool 'CMS Perm Gen' |
+
+h2. Some recommendations
+
+*Do not run Elasticsearch on a Java distribution before 6u22*. It will save you from subtle memory-related bugs. Bugs and deficiencies older than two or three years will hinder you from running Elasticsearch nodes flawlessly. Prefer Sun/Oracle distributions to old OpenJDK 6 distributions as they contain more bug fixes.
+
+*Drop Java 6 and transition to Java 7.* Oracle announced the end-of-life of Java 6 and will only offer public updates until February, 2013. 
+
+Consider that Elasticsearch is a relatively new piece of software, using most advanced techniques for gaining performance. It squeezes *everything out of the Java Virtual Machine*. Check the *age of your operating system*. Running under the latest version of your operating system will always help your Java runtime environment to achieve the best performance.
+
+Prepare yourself for *regular Java runtime environment updates*, about each quarter of a year. Tell your sysadmins you are in need of updating the Java in your Elasticsearch installation from time to time to keep the pace with the ongoing improvements in Java execution performance. It is easy by doing *rolling upgrades* without any downtimes. 
+
+*Begin small, end big.* Developing on a single Elasticsearch node is good. But remember, Elasticsearch is strong in multi-node deployments. A single node is not enough to make educated guesses about a production system running on dozens of nodes. At least, prepare hardware for three nodes.
+
+*Test your workloads first before tuning the Java Virtual Machine.* Keep a test system for benchmarking your expected workloads. Create ingest and search workloads. Vary the number of nodes involved in your tests.
+
+You may try to *reduce the heap usage* in Elasticsearch indexing by adjusting the segment merging with the @index.merge.policy.segments_per_tier@ parameter.
+
+Know your *performance strategy* before tuning. Decide if you want to tune for *maximum speed* or for *maximum throughput*.
+
+*Enable logging* of the Java garbage collecting for better diagnostics. Evaluate the numbers carefully before tweaking your system.
+
+To *enhance the CMS garbage collection*, you might add a reasonable -XX:CMSWaitDuration parameter.
+
+Learn about *the art of Garbage Collection tuning*. If you want to become a master, output the list of available JVM options, together with the preconfigured values with the command @java -XX:+UnlockDiagnosticVMOptions -XX:+PrintFlagsFinal -version@ and start tweaking.
+
+h2. References
+
+The header image shows a Dōmo-kun (どーもくん)
+
+The JVM memory diagram was taken from "http://sureshsvn.com/jvm.html":http://sureshsvn.com/jvm.html
+
+fn1. "Updated Java 6 EOL date":https://blogs.oracle.com/henrik/entry/updated_java_6_eol_date 
+
+fn2. It was reported to the author that Elasticsearch can index 50 million documents with the default heap setting before the performance degraded near to a halt.
+
+fn3. "http://bugs.sun.com/bugdatabase/view_bug.do?bug_id=7029167":http://bugs.sun.com/bugdatabase/view_bug.do?bug_id=7029167 
+
+fn4. For examples, see "http://www.datastax.com/dev/blog/whats-new-cassandra-066":http://www.datastax.com/dev/blog/whats-new-cassandra-066 and "https://issues.apache.org/jira/browse/CASSANDRA-1214":https://issues.apache.org/jira/browse/CASSANDRA-1214
+
+fn5. "JSR 924":http://jcp.org/aboutJava/communityprocess/maintenance/jsr924/JVMSpec-JavaSE7-ChangeLog.html specifies the Java Virtual machine for Java 7. Note Lukas Stadler's "presentation":http://wiki.jvmlangsummit.com/images/2/2b/JVMLanguageSummit_Stadler_Continuations.pdf about JVM continuations.
+
+fn6. "Sriram Srinivasan, A Thread of One's Own":http://malhar.net/sriram/kilim/thread_of_ones_own.pdf
+
+fn7. John Coomes, Tony Printezis, "Performance Through Parallelism: Java HotSpot™ GC Improvements", JavaOne 2006
+
+fn8. "'The maximum useful heap size is 8GB.'":http://permalink.gmane.org/gmane.comp.db.cassandra.user/23417 Aaron Morton, Apache Cassandra, DataStax MVP, "'Concurrent Mark and Sweep Problems - larger heap sizes Xmx greater 6GB'":http://www.aioug.org/sangam12/Presentations/20155.pdf Prateek Khanna, Oracle
+
+fn9. "But in certain cases object may be allocated directly in old space and CMS cycle could start while Eden has lots of objects. In this case initial mark can be 10-100 times slower which is bad. Usually this is happening due to allocation of very large objects (few megabyte arrays). To avoid these long pauses you should configure reasonable –XX:CMSWaitDuration." "Alexey Ragozin, Understanding GC pauses in JVM, HotSpot's minor GC.":http://blog.griddynamics.com/2011/06/understanding-gc-pauses-in-jvm-hotspots.html
+
+fn10. Elasticsearch Guide, "Merge":http://www.elasticsearch.org/guide/reference/index-modules/merge.html
+
+fn11. Oracle, "Garbage-First Collector":http://docs.oracle.com/javase/7/docs/technotes/guides/vm/G1.html
+
+fn12. A garbage collector exerciser source code is given by "Dr Alexander J. Turner, Comparing Java 7 Garbage Collectors Under Extreme Load":http://nerds-central.blogspot.de/2011/11/comparing-java-7-garbage-collectors.html
+
+h2. Further readings
+
+"OpenJDK Storage Management":http://openjdk.java.net/groups/hotspot/docs/StorageManagement.html
+
+"David Detlefs, Christine Flood, Steve Heller, Tony Printezis: Garbage-First Garbage Collection":http://labs.oracle.com/jtech/pubs/04-g1-paper-ismm.pdf
+
+"Prateek Khanna: Performance gain with G1 garbage collection algorithm in vertically scaled J2EE Infrastructure deployment":http://www.aioug.org/sangam12/Presentations/20155.pdf
+
+"Angelika Langer, Klaus Kreft: The Art of Garbage Collection tuning":http://www.angelikalanger.com/Conferences/Slides/jf12_TuningTheHotSpotJVMsGarbageCollectors.pdf
+
+"Alexey Ragozin, How to tame java GC pauses? Surviving 16GiB heap and greater":http://java.dzone.com/articles/how-tame-java-gc-pauses
+
+"Charles Humble, Keeping Garbage Collection Pauses Short":http://www.infoq.com/news/2010/04/cliff_click_gc_pauses
