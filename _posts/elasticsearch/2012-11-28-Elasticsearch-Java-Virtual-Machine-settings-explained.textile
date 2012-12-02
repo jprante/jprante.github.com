@@ -19,7 +19,7 @@ Elasticsearch comes with **some preconfigured settings** for the Java Virtual Ma
 
 But it may happen, while monitoring the memory of your Elasticsearch nodes, you could get tempted by changing some of the settings. Will it improve your situation or not? 
 
-This blog tries to demystify the preconfigured Elasticsearch settings and discusses the most common adjustments. Finally, some recoomendations are given how tunings should be undertaken.
+This blog tries to demystify the preconfigured Elasticsearch settings and discusses the most common adjustments. Finally, some recommendations are given how tunings should be undertaken.
 
 h2. Overview of the Elasticsearch JVM settings
 
@@ -181,13 +181,15 @@ Prepare yourself for *regular Java runtime environment updates*, about each quar
 
 *Test your workloads first before tuning the Java Virtual Machine.* Keep a test system for benchmarking your expected workloads. Create ingest and search workloads. Vary the number of nodes involved in your tests.
 
-You may try to *reduce the heap usage* in Elasticsearch indexing by adjusting the segment merging with the @index.merge.policy.segments_per_tier@ parameter.
+If your indexing workload is challenging, you may try to *reduce the heap usage* in Elasticsearch indexing by adjusting the segment merging with the @index.merge.policy.segments_per_tier@ parameter.
 
 Know your *performance strategy* before tuning. Decide if you want to tune for *maximum speed* or for *maximum throughput*.
 
 *Enable logging* of the Java garbage collecting for better diagnostics. Evaluate the numbers carefully before tweaking your system.
 
-To *enhance the CMS garbage collection*, you might add a reasonable -XX:CMSWaitDuration parameter.
+To *enhance the CMS garbage collector*, you might add a reasonable -XX:CMSWaitDuration parameter.
+
+If you operate with *very large heaps of more than 6-8 GB*, that is higher than the size the CMS garbage collector was designed for, and you encounter *unacceptable long stop-the-world pauses*, adjust the *CMSInitiatingOccupancyFraction* setting to reduce the probability of long GC runs, or try to *reduce the maximum heap* under the limit, or enable the *G1 garbage collector*.
 
 Learn about *the art of Garbage Collection tuning*. If you want to become a master, output the list of available JVM options, together with the preconfigured values with the command @java -XX:+UnlockDiagnosticVMOptions -XX:+PrintFlagsFinal -version@ and start tweaking.
 
