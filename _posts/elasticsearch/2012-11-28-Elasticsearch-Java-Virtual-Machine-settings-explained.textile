@@ -117,7 +117,7 @@ The creation of megabyte-sized arrays are common to Lucene segment-based indexin
 
 h3. Minimize paging
 
-The risk of a large heap is higher memory pressure. Note, if Java can operate with large heaps, this memory is no longer available to the rest of the system. If memory gets tight, operating systems tend to react with paging (swapping), and, in emergency situations, when all other methos of gaining memory back, even with process killing. If paging occurs, overall performance will degrade. and also garbage collection performance degrades. So, don't allocate too much memory for the heap.
+The risk of a large heap is higher memory pressure. Note, if the Java JVM operates with a large heap, this memory is no longer available to the rest of the system. If memory gets tight, operating systems tend to react with paging (swapping), and, in emergency situations, when all other methods of reclaiming memory failed, even with process killing. If paging occurs, overall performance will degrade, and also garbage collection performance degrades. So, don't allocate too much memory for the heap.
 
 h3. The Garbage first alternative
 
