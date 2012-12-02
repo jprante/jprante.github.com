@@ -207,7 +207,8 @@ fn2. It was "reported":https://groups.google.com/forum/#!topic/elasticsearch/qmC
 
 fn3. "http://bugs.sun.com/bugdatabase/view_bug.do?bug_id=7029167":http://bugs.sun.com/bugdatabase/view_bug.do?bug_id=7029167 
 
-fn4. For examples, see "http://www.datastax.com/dev/blog/whats-new-cassandra-066":http://www.datastax.com/dev/blog/whats-new-cassandra-066 and "https://issues.apache.org/jira/browse/CASSANDRA-1214":https://issues.apache.org/jira/browse/CASSANDRA-1214
+fn4. For examples, see "http://www.datastax.com/dev/blog/whats-new-cassandra-066":http://www.datastax.com/dev/blog/whats-new-cassandra-066 
+"By default the JVM tries to estimate when it needs to begin a major compaction to strike a balance between on the one hand wasting CPU by performing GC before it was necessary and on the other running out of heap space before it can finish the collection, forcing it to fall back to a stop-the-world collection. (For gory details, the term you want to look up is concurrent mode failure.) For many applications this is fine, but with Cassandra it’s worth spending extra CPU to avoid even a small possibility of being paused for several seconds for a stop-the-world collection. These options tell the JVM to always start a collection when the heap is 75% full. (This is a reasonable default based on Cassandra deployments, but some workloads may need to begin GC even earlier, especially with relatively small heaps.)"
 
 fn5. "JSR 924":http://jcp.org/aboutJava/communityprocess/maintenance/jsr924/JVMSpec-JavaSE7-ChangeLog.html specifies the Java Virtual machine for Java 7. Note Lukas Stadler's "presentation":http://wiki.jvmlangsummit.com/images/2/2b/JVMLanguageSummit_Stadler_Continuations.pdf about JVM continuations.
 
