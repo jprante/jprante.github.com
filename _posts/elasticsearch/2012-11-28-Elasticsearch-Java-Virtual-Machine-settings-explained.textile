@@ -195,7 +195,7 @@ Learn about *the art of Garbage Collection tuning*. If you want to become a mast
 
 h2. References
 
-The header image shows a Dōmo-kun (どーもくん)
+The header image shows a "Dōmo-kun":http://foundwalls.com/toy-domo-domo-kun (どーもくん)
 
 The JVM memory diagram was taken from "http://sureshsvn.com/jvm.html":http://sureshsvn.com/jvm.html
 
