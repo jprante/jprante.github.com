@@ -128,7 +128,7 @@ JB :
   # Set 'provider' to false to turn sharing off globally.
   #
   sharing :
-    provider : "twitter"
+    provider : twitter
     
   # Settings for all other include helpers can be defined by creating 
   # a hash with key named for the given helper. ex:
