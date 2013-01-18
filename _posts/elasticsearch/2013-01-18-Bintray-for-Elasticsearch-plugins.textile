@@ -70,7 +70,7 @@ and that's it!
 
 !/assets/images/bintray1.png!
 
-Direct downloads from your home page at Bintray helps others to validate downloads with the help of a SHA1 checksum.
+Direct downloads from your "home page":https://bintray.com/pkg/show/general/jprante/elasticsearch-plugins/elasticsearch-river-jdbc at Bintray helps others to validate downloads with the help of a SHA1 checksum.
 
 And, Bintray comes with a Maven repository, so everybody can reuse my Elasticsearch plugin jar libraries for developing better plugins.
 
