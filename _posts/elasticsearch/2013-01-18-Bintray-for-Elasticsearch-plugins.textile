@@ -33,7 +33,6 @@ What about downloading from Maven? Creating zip archives on Maven Central is ted
 - you must own the domain of the Maven groupId
 - Maven Central is not only Apache Software Foundation but includes also third-party approved repository hosting facilities I don't want to use for my software distribution [3]
 - my artifacts often depend on customized and improved builds and not on some broken artifacts on Maven Central
-- and, worst of all, Elasticsearch plugin zip archives on Maven Central can not be reused or improved by others
 
 So, Maven would be a viable solution if Elasticsearch would embrace the full power of dependency resolution. I made up a demonstrator [4] for an Elastcisearch version that can load "apps" from various repositories, just at node start. But that's still the future.
 
