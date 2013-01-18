@@ -25,7 +25,7 @@ In the past, it was the Github platform which offered a download area beside the
 
 Instead, Elasticsearch's plugin command was modified to handle downloads from http://download.elasticsearch.org for the core plugins, and by using search frontends on "Maven Central" for zip archives [2]. 
 
-Using elasticsearch.org as a download platform could be an alternative to move my plugin business to. But I think this should be private to the core plugins developed by Elasticsearch. And, third-party code hosting needs some careful precautions that are not met yet by the company, and the human resources to maintain such a service may impact the development of new exciting Elasticsearch code (like the move to Lucene 4).
+Using elasticsearch.org as a download platform could be an alternative to move my plugin business to. But I think this should be private to the core plugins developed by Elasticsearch. And, third-party code hosting needs some careful precautions.
 
 What about downloading from Maven? Creating zip archives on Maven Central is tedious because
 
@@ -41,15 +41,15 @@ So, what to do? For developement just for fun, maintaining a server for deployin
 
 h2. Bintray
 
-I was happy when I learned about Bintray last December. Bintray is a social platform for the storage and distribution of software binaries. The cloud-based platform is offered to open source developers free of charge. It helps in the process of making binaries publicly available. The company behind Bintray is JFrog, known from Artifactory, a competitor to Nexus, and is well established in the business of providing Maven repositories.
+I was happy when I learned about Bintray last December. Bintray is a social platform for the storage and distribution of software binaries. The cloud-based platform is offered to open source developers free of charge. It helps in the process of making binaries publicly available. The company behind Bintray is JFrog, known from Artifactory, a competitor to Sonatype Nexus, and is well established in the business of providing Maven repository infrastructure.
 
 I was excited being invited to the non-public beta a few weeks before. Now after the public beta is open, Bintray was also mentioned in blogs [5].
 
 Bintray allows importing Github accounts, so it was instantly ready to setup for my github projects. It's amazing to see these services working hand in hand! Adding a project 'elasticsearch-plugins' was a matter of seconds.
 
-The modification to the Elasticsearch plugin build process is small. I received an API key and added an entry in ~/.m2/settings.xml for the bintray API server. By adding the distribution information::
+The modification to the Elasticsearch plugin build process is small. I received an API key and added an entry in ~/.m2/settings.xml for the bintray API server. By adding the distribution information
 
-pre.   <distributionManagement>
+pre.     <distributionManagement>
         <repository>
             <id>bintray-jprante-elasticsearch-plugins-elasticsearch-river-jdbc</id>
             <name>jprante-elasticsearch-plugins-elasticsearch-river-jdbc</name>
@@ -86,14 +86,14 @@ So, thumbs up, I wish I had finally found the place where my binaries could fina
 Having saved money I bought some AMD 64bit/8GB/SATA3/SSD/1g eth machines for Elasticsearch benchmarking at home (more neat stuff coming).
 
 
-fn1. "https://github.com/blog/1302-goodbye-uploads"
+fn1. "https://github.com/blog/1302-goodbye-uploads":https://github.com/blog/1302-goodbye-uploads
 
-fn2. http://www.elasticsearch.org/blog/2012/12/17/new-download-service.html The hardcoded URLs for looking for zip files in Maven repos are http://search.maven.org/remotecontent?filepath= and https://oss.sonatype.org/service/local/repositories/releases/content/ 
+fn2. "http://www.elasticsearch.org/blog/2012/12/17/new-download-service.html":http://www.elasticsearch.org/blog/2012/12/17/new-download-service.html The hardcoded URLs for looking for zip files in Maven repos are http://search.maven.org/remotecontent?filepath= and https://oss.sonatype.org/service/local/repositories/releases/content/ 
 
-fn3. http://maven.apache.org/guides/mini/guide-central-repository-upload.html
+fn3. "http://maven.apache.org/guides/mini/guide-central-repository-upload.html":http://maven.apache.org/guides/mini/guide-central-repository-upload.html
 
-fn4. https://github.com/jprante/elasticsearch-apps
+fn4. "https://github.com/jprante/elasticsearch-apps":https://github.com/jprante/elasticsearch-apps
 
-fn5. http://www.drdobbs.com/cloud/need-a-new-binary-ask-a-developer-first/240146444
+fn5. "http://www.drdobbs.com/cloud/need-a-new-binary-ask-a-developer-first/240146444":http://www.drdobbs.com/cloud/need-a-new-binary-ask-a-developer-first/240146444
 
-fn6. https://bintray.com/docs/terms_of_service.html
+fn6. "https://bintray.com/docs/terms_of_service.html":https://bintray.com/docs/terms_of_service.html
