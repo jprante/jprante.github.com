@@ -1,0 +1,99 @@
+---
+layout: post
+category: 
+title: "Bintray for Elasticsearch plugins"
+tagline: "by Jörg Prante"
+tags: [java, elasticsearch, distribution, software]
+comments: true
+---
+
+!/assets/images/puzzle_kindergeschirr_ar.jpg!
+
+design wendy boudewijns 2006
+
+h2. Bintray for Elasticsearch plugins
+
+The development of Elasticsearch plugins is a wonderful thing. Once the plugin is ready, you can be sure the large community can download the zip archive and install it with the ./bin/plugin command line tool which comes with every Elasticsearch distribution.
+
+Plugins are the preferred method for decentralized, voluntary development of Elasticsearch extensions. There are a lot of plugins that extend the power of Elasticsearch. And, it is very easy to install them all.
+
+It is the easy way of doing things that stimulates me to develop and publish plugins, but Github suddenly roused me from slumber [1].
+
+h2. Github terminates binary service
+
+In the past, it was the Github platform which offered a download area beside the source code management. An open source developer could upload additional files to the github code. Because it was so convenient, Elasticsearch was extended to automatic downloads of zip archives from github. But that is history now. I understand Github wants to focus on their strength, source code management.
+
+Instead, Elasticsearch's plugin command was modified to handle downloads from http://download.elasticsearch.org for the core plugins, and by using search frontends on "Maven Central" for zip archives [2]. 
+
+Using elasticsearch.org as a download platform could be an alternative to move my plugin business to. But I think this should be private to the core plugins developed by Elasticsearch. And, third-party code hosting needs some careful precautions that are not met yet by the company, and the human resources to maintain such a service may impact the development of new exciting Elasticsearch code (like the move to Lucene 4).
+
+What about downloading from Maven? Creating zip archives on Maven Central is tedious because
+
+- you must sign all artifacts with a PGP signature
+- you must own the domain of the Maven groupId
+- Maven Central is not only Apache Software Foundation but includes also third-party approved repository hosting facilities I don't want to use for my software distribution [3]
+- my artifacts often depend on customized and improved builds and not on some broken artifacts on Maven Central
+- and, worst of all, Elasticsearch plugin zip archives on Maven Central can not be reused or improved by others
+
+So, Maven would be a viable solution if Elasticsearch would embrace the full power of dependency resolution. I made up a demonstrator [4] for an Elastcisearch version that can load "apps" from various repositories, just at node start. But that's still the future.
+
+So, what to do? For developement just for fun, maintaining a server for deploying plugins is quite expensive. The next would be to set up an HTTP server for download. More, I'd have to watch the server regularly for availablity, because I want a reliable service for the Elasticsarch  community. Short story, I'm out of time to do it in my spare time.
+
+h2. Bintray
+
+I was happy when I learned about Bintray last December. Bintray is a social platform for the storage and distribution of software binaries. The cloud-based platform is offered to open source developers free of charge. It helps in the process of making binaries publicly available. The company behind Bintray is JFrog, known from Artifactory, a competitor to Nexus, and is well established in the business of providing Maven repositories.
+
+I was excited being invited to the non-public beta a few weeks before. Now after the public beta is open, Bintray was also mentioned in blogs [5].
+
+Bintray allows importing Github accounts, so it was instantly ready to setup for my github projects. It's amazing to see these services working hand in hand! Adding a project 'elasticsearch-plugins' was a matter of seconds.
+
+The modification to the Elasticsearch plugin build process is small. I received an API key and added an entry in ~/.m2/settings.xml for the bintray API server. By adding the distribution information::
+
+pre.   <distributionManagement>
+        <repository>
+            <id>bintray-jprante-elasticsearch-plugins-elasticsearch-river-jdbc</id>
+            <name>jprante-elasticsearch-plugins-elasticsearch-river-jdbc</name>
+            <url>https://api.bintray.com/maven/jprante/elasticsearch-plugins/elasticsearch-river-jdbc/release</url>
+        </repository>
+    </distributionManagement>
+
+I could continue with a single command
+
+pre.    mvn deploy
+	
+for uploading the Maven build artifacts to Bintray. After upload, you have to confirm the publication of the artifacts. By opening the home screen of Bintray, you can browse to the zip plugin and learn about the URL of the file.
+
+Next, I added the URL (having it shortened by an URL shortener service) to the plugin README, for example
+
+pre.    ./bin/plugin -url http://bit.ly/U75w1N -install river-jdbc
+
+and that's it!
+
+!/assets/images/bintray1.png!
+
+Direct downloads from your home page at Bintray helps others to validate downloads with the help of a SHA1 checksum.
+
+And, Bintray comes with a Maven repository, so everybody can reuse my Elasticsearch plugin jar libraries for developing better plugins.
+
+Note, I did neither had to sign the artifacts with PGP keys nor did I qualified to be an owner for my Maven groupId. JFrog trusts me I'm doing the right thing and that is really compelling.
+
+All I have to do is conform to the terms of service [6]. I'm not a lawyer and I don't know if the terms are valid here in Germany, but I treat them with respect. There are pros and cons in the terms of service, but my hope is that Bintray will keep up free service for open source devlopers and will not discontinue or limit download space or availability in the near future.
+
+The next thing I want to explore is the great devops-incubator of Henri Gomez, for producing Elasticsearch RPMs. Bintray provides not only Maven repository but also RPM/yum. Great news because my favorite Linux is Red Hat Linux.
+
+So, thumbs up, I wish I had finally found the place where my binaries could finally settle, and solve my binary software distribution delivery challenge being an individual developer. As a bonus I get some nice statistics and comment feedback from Bintray.
+
+Having saved money I bought some AMD 64bit/8GB/SATA3/SSD/1g eth machines for Elasticsearch benchmarking at home (more neat stuff coming).
+
+
+fn1. "https://github.com/blog/1302-goodbye-uploads"
+
+fn2. http://www.elasticsearch.org/blog/2012/12/17/new-download-service.html The hardcoded URLs for looking for zip files in Maven repos are http://search.maven.org/remotecontent?filepath= and https://oss.sonatype.org/service/local/repositories/releases/content/ 
+
+fn3. http://maven.apache.org/guides/mini/guide-central-repository-upload.html
+
+fn4. https://github.com/jprante/elasticsearch-apps
+
+fn5. http://www.drdobbs.com/cloud/need-a-new-binary-ask-a-developer-first/240146444
+
+fn6. https://bintray.com/docs/terms_of_service.html
